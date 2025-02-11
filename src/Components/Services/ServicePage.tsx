@@ -24,8 +24,8 @@ const ServicePage = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen w-full ">
-      <div className="h-16 w-full">
+    <div className="flex flex-col min-h-screen w-full">
+      <div className="h-16 w-full ">
         {/* Add a header or space here */}
       </div>
       <div className="flex flex-1 overflow-hidden">

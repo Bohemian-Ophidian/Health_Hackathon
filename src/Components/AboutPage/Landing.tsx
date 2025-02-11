@@ -38,11 +38,13 @@ const About = () => {
       >
        About Our Healthcare Platform
       </motion.h1>
-      <p className="text-lg font-bold text-gray-600 max-w-2xl mx-auto mb-10">
+      <div className="bg-blue-400">
+      <p className="text-lg font-bold text-gray-800 max-w-2xl mx-auto mb-10">
         Our platform integrates AI-powered solutions to provide personalized healthcare assistance. 
         From monitoring your health to analyzing prescriptions and finding nearby medical centers, 
         we ensure a seamless experience for users.
       </p>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
   {features.map((feature, index) => (
     <motion.div 
@@ -67,7 +69,7 @@ const About = () => {
   ))}
 </div>
 
-      <div className="text-left max-w-3xl mx-auto mb-10">
+      <div className="text-left max-w-3xl mx-auto mb-10 mt-10">
         <h2 className="text-2xl font-semibold text-gray-800 mb-4">Why These Features Matter</h2>
         <p className="text-gray-600 mb-4">
           Modern healthcare is often plagued by inefficiencies, misdiagnoses, and lack of access to proper medical guidance. 

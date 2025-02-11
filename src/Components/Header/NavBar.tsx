@@ -116,6 +116,9 @@ const NavBar = ({ flexBetween }: Props) => {
             >
               Services
             </button>
+            <button className="text-lg font-bold text-primary hover:text-[#2b7dad] transition duration-500">
+            <Link to="/Hospital-Website/login">Login</Link>
+          </button>
           </div>
         </div>
       )}
