@@ -67,7 +67,7 @@ model = genai.GenerativeModel(
     model_name="gemini-2.0-flash-exp",
     safety_settings=safety_settings,
     generation_config=generation_config,
-    # system_instruction="your role to take the provided information and give each reply according to that and try to be straight forward and simple, try to provide a quick and simple solution (like first aid and such) before telling the patient to consult a doctor.",
+    # system_instruction="",
     system_instruction="Your role is to listen to the user, understand his symptoms, tailor your response according to it, and you must be straightforward and concise about it, also provide quick and simple solutions like first aid or other remedies before asking the patient to consult a doctor.",
 )
 
