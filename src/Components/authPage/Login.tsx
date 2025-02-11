@@ -1,38 +1,44 @@
+import axios from "axios";
 import { useState } from "react";
+import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
-  const [useEmail, setUseEmail] = useState(true);
+  const [mobile, setMobileNumber] = useState("");
+  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
-  const handleToggle = () => {
-    setUseEmail(!useEmail);
+  const handleSubmit = (e:React.FormEvent) => {
+    e.preventDefault();
+    axios
+      .post("http://localhost:8000/login", { mobile, password }) 
+      .then((res) => {
+        console.log(res);
+        if (res.data === "success") {
+          navigate("/Hospital-Website/home");
+        }
+      })
+      .catch((error) => {
+        console.error("Error during login:", error);
+      });
   };
 
   return (
     <div className="flex justify-center items-center h-screen bg-white">
       <div className="bg-blue-600 p-10 rounded-2xl shadow-lg text-center w-96">
         <h2 className="text-white text-2xl font-semibold">Health Mentá</h2>
-        <form action="#" method="POST" className="mt-6">
+        <form onSubmit={handleSubmit} className="mt-6"> {/* Added onSubmit */}
           <div className="mb-4 text-left">
-            <label className="block text-white font-bold">{useEmail ? "Email" : "Mobile Number"}</label>
-            {useEmail ? (
-              <input
-                type="email"
-                id="email"
-                name="email"
-                placeholder="Enter Email"
-                required
-                className="w-full mt-2 p-2 border border-white bg-white rounded-md text-black"
-              />
-            ) : (
-              <input
-                type="tel"
-                id="mobile"
-                placeholder="Enter Mobile Number"
-                name="mobile"
-                required
-                className="w-full mt-2 p-2 border border-white bg-white rounded-md text-black"
-              />
-            )}
+            <label className="block text-white font-bold">Mobile Number</label>
+            <input
+              type="tel"
+              id="mobile"
+              placeholder="Enter Mobile Number"
+              name="mobile"
+              required
+              onChange={(e) => setMobileNumber(e.target.value)}
+              className="w-full mt-2 p-2 border border-white bg-white rounded-md text-black"
+            />
           </div>
           <div className="mb-4 text-left">
             <label htmlFor="password" className="block text-white font-bold">Password</label>
@@ -43,6 +49,7 @@ const Login = () => {
               name="password"
               required
               className="w-full mt-2 p-2 border border-white bg-white rounded-md text-black"
+              onChange={(e) => setPassword(e.target.value)}
             />
           </div>
           <button
@@ -60,17 +67,6 @@ const Login = () => {
             <a href="#" className="text-white underline">Forgot Password?</a>
           </div>
         </form>
-        <div className="mt-4">
-          <label className="text-white">
-            <input
-              type="checkbox"
-              checked={!useEmail}
-              onChange={handleToggle}
-              className="mr-2"
-            />
-            Use {useEmail ? "Mobile Number" : "Email"} instead?
-          </label>
-        </div>
       </div>
     </div>
   );

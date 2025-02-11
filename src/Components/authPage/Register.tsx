@@ -1,87 +1,103 @@
+import axios from "axios";
 import { useState } from "react";
 
 const Register = () => {
-  const [useEmail, setUseEmail] = useState(true);
+  const [mobileNumber, setMobileNumber] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [age, setAge] = useState("");
+  const [sex, setSex] = useState("");
+  const [medicalHistory, setMedicalHistory] = useState("");
+  const [height, setHeight] = useState("");
+  const [weight, setWeight] = useState("");
 
-  const handleToggle = () => {
-    setUseEmail(!useEmail);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    axios
+      .post("http://localhost:8000/patient", {
+        name,
+        mobileNumber,
+        age,
+        sex,
+        medicalHistory,
+        height,
+        weight,
+        password,
+      })
+      .then((res) => console.log(res))
+      .catch((err) => console.log(err));
   };
 
   return (
     <div className="flex justify-center items-center mt-12 min-h-screen bg-white p-6">
       <div className="bg-blue-600 p-10 rounded-2xl shadow-lg text-center w-96">
         <h2 className="text-white text-2xl font-semibold">Health Mentá</h2>
-        <form action="#" method="POST" className="mt-6">
+        <form onSubmit={handleSubmit} className="mt-6">
+          {/* Name */}
           <div className="mb-4 text-left">
-            <label htmlFor="full-name" className="block text-white font-bold">Name</label>
+            <label className="block text-white font-bold">Name</label>
             <input
               type="text"
-              id="full-name"
-              name="full-name"
+              name="name"
               required
               placeholder="Enter Full Name"
               className="w-full mt-2 p-2 border border-white bg-white rounded-md text-black"
+              onChange={(e) => setName(e.target.value)}
+              value={name}
             />
-          </div>
-          
-          {/* Conditionally render either Email or Mobile Number */}
-          <div className="mb-4 text-left">
-            <label className="block text-white font-bold">{useEmail ? "Email" : "Mobile Number"}</label>
-            {useEmail ? (
-              <input
-                type="email"
-                id="email"
-                name="email"
-                placeholder="Enter Email"
-                required
-                className="w-full mt-2 p-2 border border-white bg-white rounded-md text-black"
-              />
-            ) : (
-              <input
-                type="tel"
-                id="mobile"
-                placeholder="Enter Mobile Number"
-                name="mobile"
-                required
-                className="w-full mt-2 p-2 border border-white bg-white rounded-md text-black"
-              />
-            )}
           </div>
 
+          {/* Mobile Number */}
           <div className="mb-4 text-left">
-            <label htmlFor="password" className="block text-white font-bold">Password</label>
+            <label className="block text-white font-bold">Mobile Number</label>
             <input
-              type="password"
-              placeholder="Enter Strong Password"
-              id="password"
-              name="password"
+              type="tel"
+              name="mobileNumber"
+              placeholder="Enter Mobile Number"
               required
               className="w-full mt-2 p-2 border border-white bg-white rounded-md text-black"
+              onChange={(e) => setMobileNumber(e.target.value)}
+              value={mobileNumber}
             />
           </div>
-          
-          {/* Age and Sex fields in one line */}
+
+          {/* Password */}
+          <div className="mb-4 text-left">
+            <label className="block text-white font-bold">Password</label>
+            <input
+              type="password"
+              name="password"
+              placeholder="Enter Strong Password"
+              required
+              className="w-full mt-2 p-2 border border-white bg-white rounded-md text-black"
+              onChange={(e) => setPassword(e.target.value)}
+              value={password}
+            />
+          </div>
+
+          {/* Age & Gender */}
           <div className="mb-4 flex justify-between gap-8 text-left">
             <div className="w-1/2">
-              <label htmlFor="age" className="block text-white font-bold">Age</label>
+              <label className="block text-white font-bold">Age</label>
               <input
                 type="number"
-                id="age"
                 name="age"
                 placeholder="Enter Age"
                 min="1"
                 required
                 className="w-full mt-2 p-2 border border-white bg-white rounded-md text-black"
+                onChange={(e) => setAge(e.target.value)}
+                value={age}
               />
             </div>
             <div className="w-1/2">
-              <label htmlFor="sex" className="block text-white font-bold">Sex</label>
+              <label className="block text-white font-bold">Sex</label>
               <select
-                id="sex"
                 name="sex"
-                placeholder="Enter Sex"
                 required
                 className="w-full mt-2 p-2 border border-white bg-white rounded-md text-black"
+                onChange={(e) => setSex(e.target.value)}
+                value={sex}
               >
                 <option value="">Select</option>
                 <option value="male">Male</option>
@@ -91,47 +107,50 @@ const Register = () => {
             </div>
           </div>
 
-          {/* Height and Weight fields */}
+          {/* Height & Weight */}
           <div className="mb-4 flex justify-between gap-8 text-left">
             <div className="w-1/2">
-              <label htmlFor="height" className="block text-white font-bold">Height (cm)</label>
+              <label className="block text-white font-bold">Height (cm)</label>
               <input
                 type="number"
-                id="height"
                 name="height"
-                placeholder="Enter Height "
+                placeholder="Enter Height"
                 min="0"
                 required
                 className="w-full mt-2 p-2 border border-white bg-white rounded-md text-black"
+                onChange={(e) => setHeight(e.target.value)}
+                value={height}
               />
             </div>
             <div className="w-1/2">
-              <label htmlFor="weight" className="block text-white font-bold">Weight (kg)</label>
+              <label className="block text-white font-bold">Weight (kg)</label>
               <input
                 type="number"
-                id="weight"
                 name="weight"
                 placeholder="Enter Weight"
                 min="0"
                 required
                 className="w-full mt-2 p-2 border border-white bg-white rounded-md text-black"
+                onChange={(e) => setWeight(e.target.value)}
+                value={weight}
               />
             </div>
           </div>
 
-          {/* Medical History field */}
+          {/* Medical History */}
           <div className="mb-4 text-left">
-            <label htmlFor="medical-history" className="block text-white font-bold">Medical History</label>
+            <label className="block text-white font-bold">Medical History</label>
             <textarea
-              id="medical-history"
-              name="medical-history"
-              placeholder="like allergies, chronic diseases, etc."
+              name="medicalHistory"
+              placeholder="Like allergies, chronic diseases, etc."
               rows={2}
               className="w-full mt-2 p-2 border border-white bg-white rounded-md text-black"
+              onChange={(e) => setMedicalHistory(e.target.value)}
+              value={medicalHistory}
             ></textarea>
           </div>
-          
-          {/* Submit button */}
+
+          {/* Submit Button */}
           <button
             type="submit"
             className="w-full bg-white text-black py-2 rounded-md font-semibold hover:bg-black hover:text-white transition duration-300"
@@ -139,19 +158,6 @@ const Register = () => {
             Create Account
           </button>
         </form>
-        
-        {/* Toggle between email and mobile */}
-        <div className="mt-4">
-          <label className="text-white">
-            <input
-              type="checkbox"
-              checked={!useEmail}
-              onChange={handleToggle}
-              className="mr-2"
-            />
-            Use {useEmail ? "Mobile Number" : "Email"} instead?
-          </label>
-        </div>
       </div>
     </div>
   );
