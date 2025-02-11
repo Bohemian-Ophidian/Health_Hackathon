@@ -1,7 +1,7 @@
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/20/solid';
 import { SelectedPage } from '@/Components/Shared/Types';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate,Link } from 'react-router-dom';
 import useMediaQuery from '@/Hooks/useMediaQuery';
 
 // import Links from './Links';
@@ -67,7 +67,9 @@ const NavBar = ({ flexBetween }: Props) => {
               Services
             </button>
           </div>
-          <Button>Log In</Button>
+          <Button >
+            <Link to="/Hospital-Website/login">Login</Link>
+          </Button>
         </div>
       )}
 

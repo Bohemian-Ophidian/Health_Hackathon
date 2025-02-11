@@ -11,7 +11,7 @@ const Header = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      // setIsTopOfPage(window.scrollY === 0);
+      
       if (window.scrollY === 0) {
         setSelectedPage(SelectedPage.Home);
       }

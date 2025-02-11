@@ -1,21 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { marked } from 'marked'; // Import the marked library
+import { marked } from 'marked';
 
 const MentaAI: React.FC = () => {
-    const [messages, setMessages] = useState<{ user: string, text: string }[]>([]);
+    const [messages, setMessages] = useState<{ user: string, text: string, timestamp: string }[]>([]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
     const [patientId, setPatientId] = useState<string | null>(null);
 
     useEffect(() => {
-        // Fetch or set patient_id dynamically (this can be modified to fetch from a login system)
         setPatientId("67a932d0ca3e10e26a9d8c40"); // Replace with actual patient ID
     }, []);
 
     const handleSend = async () => {
         if (input.trim() && patientId) {
-            setMessages([...messages, { user: 'You', text: input }]);
-            setLoading(true); // Show loading
+            const timestamp = new Date().toLocaleTimeString();
+            setMessages([...messages, { user: 'You', text: input, timestamp }]);
+            setLoading(true);
 
             try {
                 const response = await fetch('http://localhost:8000/chat/chatWithBot', {
@@ -28,10 +28,10 @@ const MentaAI: React.FC = () => {
                 });
 
                 const data = await response.json();
-                setMessages((prevMessages) => [...prevMessages, { user: 'MentaAI', text: data.bot_response }]);
+                setMessages((prevMessages) => [...prevMessages, { user: 'MentaAI', text: data.bot_response, timestamp: new Date().toLocaleTimeString() }]);
             } catch (error) {
                 console.error('Error:', error);
-                setMessages((prevMessages) => [...prevMessages, { user: 'MentaAI', text: 'Error connecting to the server.' }]);
+                setMessages((prevMessages) => [...prevMessages, { user: 'MentaAI', text: 'Error connecting to the server.', timestamp: new Date().toLocaleTimeString() }]);
             }
 
             setLoading(false);
@@ -45,30 +45,26 @@ const MentaAI: React.FC = () => {
         }
     };
 
-    // Function to convert markdown text to HTML using `marked`
     const createMarkup = (text: string) => {
-        const htmlContent = marked(text);  // Convert markdown text to HTML
-        return { __html: htmlContent };
+        return { __html: marked(text) };
     };
 
     return (
         <div className="flex flex-col h-screen p-4 bg-gray-100">
-            <div className="flex-none p-4 bg-blue-500 text-white rounded-t-lg">
+            <div className="flex-none p-4 bg-green-500 text-white rounded-t-lg flex items-center justify-between">
                 <h2 className="text-xl font-bold">MentaAI Chat</h2>
             </div>
             <div className="flex-1 overflow-y-auto p-4 bg-white rounded-b-lg shadow-md">
                 {messages.map((message, index) => (
                     <div
                         key={index}
-                        className={`mb-3 p-3 rounded-lg ${message.user === 'You' ? 'bg-blue-100 self-end' : 'bg-gray-200 self-start'}`}
+                        className={`mb-3 p-3 rounded-lg ${message.user === 'You' ? 'bg-green-100 self-end' : 'bg-gray-200 self-start'}`}
                     >
-                        <strong>{message.user}:</strong>
-                        <div
-                            dangerouslySetInnerHTML={createMarkup(message.text)}  // Use `dangerouslySetInnerHTML` to render HTML
-                        />
+                        <strong>{message.user}:</strong> <span className="text-xs text-gray-500">{message.timestamp}</span>
+                        <div dangerouslySetInnerHTML={createMarkup(message.text)} />
                     </div>
                 ))}
-                {loading && <p className="text-gray-500 italic">MentaAI is thinking...</p>}
+                {loading && <p className="text-gray-500 italic">MentaAI is typing...</p>}
             </div>
             <div className="flex-none mt-4">
                 <div className="flex">
@@ -82,7 +78,7 @@ const MentaAI: React.FC = () => {
                     />
                     <button
                         onClick={handleSend}
-                        className="p-2 bg-blue-500 text-white rounded-r-lg"
+                        className="p-2 bg-green-500 text-white rounded-r-lg"
                         disabled={loading}
                     >
                         {loading ? "Sending..." : "Send"}
