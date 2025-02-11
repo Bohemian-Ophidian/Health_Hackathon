@@ -38,13 +38,11 @@ const About = () => {
       >
        About Our Healthcare Platform
       </motion.h1>
-      <div className="bg-blue-400">
       <p className="text-lg font-bold text-gray-800 max-w-2xl mx-auto mb-10">
         Our platform integrates AI-powered solutions to provide personalized healthcare assistance. 
         From monitoring your health to analyzing prescriptions and finding nearby medical centers, 
         we ensure a seamless experience for users.
       </p>
-      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
   {features.map((feature, index) => (
     <motion.div 
