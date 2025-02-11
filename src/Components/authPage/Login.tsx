@@ -39,6 +39,7 @@ const Login = () => {
             <input
               type="password"
               id="password"
+              placeholder="Enter Strong Password"
               name="password"
               required
               className="w-full mt-2 p-2 border border-white bg-white rounded-md text-black"

@@ -49,7 +49,7 @@ const Register = () => {
           </div>
 
           <div className="mb-4 text-left">
-            <label htmlFor="password" className="block text-white font-bold">Enter a strong password</label>
+            <label htmlFor="password" className="block text-white font-bold">Password</label>
             <input
               type="password"
               placeholder="Enter Strong Password"
@@ -59,6 +59,8 @@ const Register = () => {
               className="w-full mt-2 p-2 border border-white bg-white rounded-md text-black"
             />
           </div>
+          
+          {/* Age and Sex fields in one line */}
           <div className="mb-4 flex justify-between gap-8 text-left">
             <div className="w-1/2">
               <label htmlFor="age" className="block text-white font-bold">Age</label>
@@ -88,6 +90,36 @@ const Register = () => {
               </select>
             </div>
           </div>
+
+          {/* Height and Weight fields */}
+          <div className="mb-4 flex justify-between gap-8 text-left">
+            <div className="w-1/2">
+              <label htmlFor="height" className="block text-white font-bold">Height (cm)</label>
+              <input
+                type="number"
+                id="height"
+                name="height"
+                placeholder="Enter Height "
+                min="0"
+                required
+                className="w-full mt-2 p-2 border border-white bg-white rounded-md text-black"
+              />
+            </div>
+            <div className="w-1/2">
+              <label htmlFor="weight" className="block text-white font-bold">Weight (kg)</label>
+              <input
+                type="number"
+                id="weight"
+                name="weight"
+                placeholder="Enter Weight"
+                min="0"
+                required
+                className="w-full mt-2 p-2 border border-white bg-white rounded-md text-black"
+              />
+            </div>
+          </div>
+
+          {/* Medical History field */}
           <div className="mb-4 text-left">
             <label htmlFor="medical-history" className="block text-white font-bold">Medical History</label>
             <textarea
@@ -98,6 +130,8 @@ const Register = () => {
               className="w-full mt-2 p-2 border border-white bg-white rounded-md text-black"
             ></textarea>
           </div>
+          
+          {/* Submit button */}
           <button
             type="submit"
             className="w-full bg-white text-black py-2 rounded-md font-semibold hover:bg-black hover:text-white transition duration-300"
@@ -106,6 +140,7 @@ const Register = () => {
           </button>
         </form>
         
+        {/* Toggle between email and mobile */}
         <div className="mt-4">
           <label className="text-white">
             <input
