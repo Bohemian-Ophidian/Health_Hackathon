@@ -1,5 +1,7 @@
 import axios from "axios";
 import { useState } from "react";
+import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const Register = () => {
   const [mobileNumber, setMobileNumber] = useState("");
@@ -10,22 +12,44 @@ const Register = () => {
   const [medicalHistory, setMedicalHistory] = useState("");
   const [height, setHeight] = useState("");
   const [weight, setWeight] = useState("");
+  const [error, setError] = useState(""); // State to store error messages
+  const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    axios
-      .post("http://localhost:8000/patient", {
-        name,
-        mobileNumber,
-        age,
-        sex,
-        medicalHistory,
-        height,
-        weight,
-        password,
+    axios.post("http://localhost:3001/register", {
+      mobile_number: mobileNumber, // Make sure the key matches the backend expectation
+      password,
+      name,
+      age,
+      sex,
+      medical_history: medicalHistory,
+      height,
+      weight,
+    })
+
+      .then((res) => {
+        if (res.data === "User already exists") {
+          setError("User with this mobile number already exists."); // Specific error for existing user
+        } else {
+          navigate("/Hospital-Website/"); // Navigate on success
+        }
       })
-      .then((res) => console.log(res))
-      .catch((err) => console.log(err));
+      .catch((err) => {
+        // More detailed error handling
+        if (err.response) {
+          // The request was made and the server responded with a status code
+          // that falls out of the range of 2xx
+          setError(`Failed to register: ${err.response.data.message || err.response.statusText}`);
+        } else if (err.request) {
+          // The request was made but no response was received
+          setError("No response from the server. Check your network connection.");
+        } else {
+          // Something happened in setting up the request that triggered an Error
+          setError("Error setting up your registration request.");
+        }
+        console.error("Registration error:", err);
+      });
   };
 
   return (
@@ -33,6 +57,13 @@ const Register = () => {
       <div className="bg-blue-600 p-10 rounded-2xl shadow-lg text-center w-96">
         <h2 className="text-white text-2xl font-semibold">Health Mentá</h2>
         <form onSubmit={handleSubmit} className="mt-6">
+          {/* Error Display */}
+          {error && (
+            <div className="mb-4 text-sm text-red-600">
+              {error}
+            </div>
+          )}
+
           {/* Name */}
           <div className="mb-4 text-left">
             <label className="block text-white font-bold">Name</label>
@@ -100,9 +131,9 @@ const Register = () => {
                 value={sex}
               >
                 <option value="">Select</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
               </select>
             </div>
           </div>

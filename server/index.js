@@ -28,18 +28,17 @@ app.post("/register", async (req, res) => {
     try {
         const { mobile_number, password, ...rest } = req.body;
 
-        // Check if mobile number already exists
         const existingUser = await PatientModel.findOne({ mobile_number });
         if (existingUser) {
             return res.status(400).json({ message: "User with this mobile number already exists" });
         }
 
-        // Create new patient
         const newUser = new PatientModel({ mobile_number, password, ...rest });
         await newUser.save();
 
         res.status(201).json({ message: "Registration successful", user: newUser });
     } catch (err) {
+        console.error("Registration error:", err); // Log the error for debugging
         res.status(500).json({ message: "Error registering patient", error: err.message });
     }
 });
