@@ -158,12 +158,14 @@ const DoctorsPage: React.FC = () => {
     alert(`Appointment booked with ${doctorName} on ${selectedDate.toLocaleDateString()} at ${selectedTime}`);
   };
 
+
   const handleCancelAppointment = (doctorName: string) => {
     const updatedAppointments = appointments.filter((appointment) => appointment.doctor !== doctorName);
     setAppointments(updatedAppointments);
     setSelectedDoctor(null); // Reset the selected doctor
     alert(`Appointment with ${doctorName} has been cancelled.`);
   };
+  
 
   const handleDateChange = (date: Date | null) => {
     if (date) {
@@ -258,6 +260,7 @@ const DoctorsPage: React.FC = () => {
                       onClick={() => {
                         setSelectedDoctor(doctor.name); // Select the doctor
                         setShowCalendar(true); // Show the calendar and time picker
+                        
                       }}
                       className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
                     >

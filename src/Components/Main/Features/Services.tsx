@@ -6,11 +6,14 @@ import { SelectedService } from '@/Components/Shared/Types';
 import ListItem from './ListItem';
 import Banner1 from './Banner1';
 import SectionWrapper from '../SectionWrapper';
+import { useNavigate } from "react-router-dom";
+
 
 const Services = () => {
   const [SelectService, setSelectService] = useState<SelectedService>(
     SelectedService.Cardiology
   );
+  const navigate = useNavigate();
 
   const selectedServiceData = ServicesData.find(
     (service) => service.id === SelectService
@@ -39,7 +42,8 @@ const Services = () => {
             ))}
           </ul>
           <div className="lg:ml-5 mt-5">
-            <Button>Appointment Now</Button>
+          <Button onClick={() => navigate("/Hospital-Website/Doctors")}>
+              Appointment Now</Button>
           </div>
         </div>
       </div>

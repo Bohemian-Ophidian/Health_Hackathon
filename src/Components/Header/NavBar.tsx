@@ -1,7 +1,7 @@
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/20/solid';
 import { SelectedPage } from '@/Components/Shared/Types';
-import { useState } from 'react';
-import { useNavigate,Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import useMediaQuery from '@/Hooks/useMediaQuery';
 
 // import Links from './Links';
@@ -13,27 +13,16 @@ type Props = {
   setSelectedPage: (value: SelectedPage) => void;
 };
 
-const NavBar = ({ flexBetween }: Props) => {
-  const [isMenuToggled, setIsMenuToggled] = useState<boolean>(false);
-  const isAboveMediumScreens = useMediaQuery('(min-width: 900px)');
-  const navigate = useNavigate();
 
-  const handleHomeClick = () => {
-    navigate('/Hospital-Website'); // Navigate to Services page
-  };
+  const NavBar = ({ flexBetween }: { flexBetween: string }) => {
+    const [isMenuToggled, setIsMenuToggled] = useState(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const isAboveMediumScreens = useMediaQuery('(min-width: 900px)');
   
-  const handleDoctorsClick = () => {
-    navigate('/Hospital-Website/doctors'); // Navigate to Doctors page
-  };
-
-  const handleAboutClick = () => {
-    navigate('/Hospital-Website/about'); // Navigate to About page
-  };
-
-  const handleServicesClick = () => {
-    navigate('/Hospital-Website/services'); // Navigate to Services page
-  };
-
+    useEffect(() => {
+      const user = localStorage.getItem("user");
+      setIsLoggedIn(!!user);
+    }, []);
   return (
     <nav>
       {/* Desktop Menu */}
@@ -44,32 +33,42 @@ const NavBar = ({ flexBetween }: Props) => {
 
             <button
               className="text-lg font-bold text-primary hover:text-[#2b7dad] transition duration-500"
-              onClick={handleHomeClick}
             >
-              Home
+              <Link to="/Hospital-Website">Home</Link>
             </button>
             <button
               className="text-lg font-bold text-primary hover:text-[#2b7dad] transition duration-500"
-              onClick={handleDoctorsClick}
+            ><Link to="/Hospital-Website/about">About</Link>
+            </button>
+
+            {isLoggedIn && (
+            <>
+            <button
+              className="text-lg font-bold text-primary hover:text-[#2b7dad] transition duration-500"
             >
-              Doctors
+              <Link to="/Hospital-Website/doctors">Doctors</Link>
             </button>
             <button
               className="text-lg font-bold text-primary hover:text-[#2b7dad] transition duration-500"
-              onClick={handleAboutClick}
             >
-              About
+              <Link to="/Hospital-Website/services">Services</Link>
             </button>
-            <button
-              className="text-lg font-bold text-primary hover:text-[#2b7dad] transition duration-500"
-              onClick={handleServicesClick}
-            >
-              Services
-            </button>
+            </>
+          )}
+
           </div>
-          <Button >
+          {!isLoggedIn ? (
+          <Button>
             <Link to="/Hospital-Website/login">Login</Link>
           </Button>
+        ) : (
+          <button onClick={() => {
+            localStorage.removeItem("user");
+            window.location.reload();
+          }}>
+            Logout
+          </button>
+        )}
         </div>
       )}
 
@@ -94,31 +93,43 @@ const NavBar = ({ flexBetween }: Props) => {
           <div className="ml-[20%] flex flex-col items-start gap-5 text-2xl">
             <button
               className="text-lg font-bold text-primary hover:text-[#2b7dad] transition duration-500"
-              onClick={handleHomeClick}
             >
-              Home
+              <Link to="/Hospital-Website">Home</Link>
             </button>
             <button
-              className="text-lg font-bold text-primary hover:text-[#2b7dad] transition duration-500"
-              onClick={handleDoctorsClick}
-            >
-              Doctors
+              className="text-lg font-bold text-primary hover:text-[#2b7dad] transition duration-500">
+              <Link to="/Hospital-Website/about">About</Link>
             </button>
+
+
+            {isLoggedIn && (
+            <>
             <button
-              className="text-lg font-bold text-primary hover:text-[#2b7dad] transition duration-500"
-              onClick={handleAboutClick}
-            >
-              About
+              className="text-lg font-bold text-primary hover:text-[#2b7dad] transition duration-500">
+              <Link to="/Hospital-Website/doctors">Doctors</Link>
             </button>
+
             <button
-              className="text-lg font-bold text-primary hover:text-[#2b7dad] transition duration-500"
-              onClick={handleServicesClick}
-            >
-              Services
+              className="text-lg font-bold text-primary hover:text-[#2b7dad] transition duration-500">
+              <Link to="/Hospital-Website/services">Services</Link>
             </button>
-            <button className="text-lg font-bold text-primary hover:text-[#2b7dad] transition duration-500">
+            </>
+          )}
+          {!isLoggedIn ? (
+          <button 
+          className="text-lg font-bold text-primary hover:text-[#2b7dad] transition duration-500">
             <Link to="/Hospital-Website/login">Login</Link>
           </button>
+        ) : (
+          <button
+          className="text-lg font-bold text-primary hover:text-[#2b7dad] transition duration-500" 
+          onClick={() => {
+            localStorage.removeItem("user");
+            window.location.reload();
+          }}>
+            Logout
+          </button>
+        )}
           </div>
         </div>
       )}
