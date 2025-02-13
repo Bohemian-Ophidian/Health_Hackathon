@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/prescription-ocr/internal/models"
-	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/prescription-ocr/internal/services/ocr"
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/models"
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/ocr"
 )
 
 func UploadImageHandler(w http.ResponseWriter, r *http.Request) {

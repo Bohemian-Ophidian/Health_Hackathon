@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/prescription-ocr/internal/models"
-	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/prescription-ocr/internal/services/llama"
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/models"
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/llama"
 )
 
 
