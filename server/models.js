@@ -15,13 +15,23 @@ const DoctorModel = mongoose.model("doctors", DoctorSchema);
 const PatientSchema = new mongoose.Schema({
     name: { type: String, required: true },
     age: { type: Number, required: true },
-    sex: { type: String, enum: ["Male", "Female", "Other"], required: true }, // Enum for validation
+    sex: { type: String, enum: ["Male", "Female", "Other"], required: true },
     height: { type: Number, required: true },
     weight: { type: Number, required: true },
-    mobile_number: { type: String, unique: true, required: true, index: true }, // Index for fast lookup
+    mobile_number: { type: String, unique: true, required: true, index: true },
     password: { type: String, required: true },
-    medical_history: { type: [String], default: [] } // Changed to array for better structure
-}, { timestamps: true });
+    medical_history: { type: [String], default: [] },
+    // New field for storing medicines:
+    medicines: [
+      {
+        name: { type: String},
+        description: { type: String },
+        dosage: { type: String },   // Optional: dosage information
+        time: { type: String }       // Optional: time to take the medicine
+      }
+    ]
+  }, { timestamps: true });
+  
 
 /* 🔹 Hash password before saving */
 PatientSchema.pre("save", async function (next) {
