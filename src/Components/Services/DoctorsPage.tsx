@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -12,135 +13,26 @@ interface Doctor {
   imageUrl: string;
 }
 
-const doctors: Doctor[] = [
-  {
-    name: "Dr. Sandeep Budhiraja",
-    title: "Group Medical Director - Max Healthcare & Senior Director - Institute of Internal Medicine",
-    speciality: "Internal Medicine",
-    experience: "29+ Years",
-    gender: "Male",
-    profileLink: "#",
-    imageUrl: "https://www.shutterstock.com/image-photo/profile-picture-smiling-young-caucasian-600nw-1954278664.jpg",
-  },
-  {
-    name: "Dr. Balbir Singh",
-    title: "Group Chairman - Cardiac Sciences, Pan Max & Chief of Interventional Cardiology and Electrophysiology, Max Saket",
-    speciality: "Cardiac Sciences, Cardiology, Cardiac Electrophysiology-Pacemaker, Interventional Cardiology",
-    experience: "34+ Years",
-    gender: "Male",
-    profileLink: "#",
-    imageUrl: "https://www.shutterstock.com/image-photo/profile-picture-smiling-young-caucasian-600nw-1954278664.jpg",
-  },
-  {
-    name: "Dr. Rajesh Ahlawat",
-    title: "Group Chairman - Urology & Chairman - Centre of Excellence of Prostate & Urological Cancers and Male Health",
-    speciality: "Urology, Uro-Oncology, Kidney Transplant",
-    experience: "40+ Years",
-    gender: "Male",
-    profileLink: "#",
-    imageUrl: "https://www.shutterstock.com/image-photo/profile-picture-smiling-young-caucasian-600nw-1954278664.jpg",
-  },
-  {
-    name: "Dr. T.S. Kler",
-    title: "Chairman & HOD - BLK-Max Heart & Vascular Institute, Chairman Pan Max - Electrophysiology - Heart & Vascular Institute",
-    speciality: "Cardiac Electrophysiology-Pacemaker, Cardiology, Interventional Cardiology, Cardiac Arrhythmia, Cardiac Sciences",
-    experience: "30+ Years",
-    gender: "Male",
-    profileLink: "#",
-    imageUrl: "https://www.shutterstock.com/image-photo/profile-picture-smiling-young-caucasian-600nw-1954278664.jpg",
-  },
-  // Additional doctors added here
-  {
-    name: "Dr. John Doe",
-    title: "Consultant Neurologist",
-    speciality: "Neurology",
-    experience: "10+ Years",
-    gender: "Male",
-    profileLink: "#",
-    imageUrl: "https://www.shutterstock.com/image-photo/profile-picture-smiling-young-caucasian-600nw-1954278664.jpg",
-  },
-  {
-    name: "Dr. Jane Smith",
-    title: "Consultant Cardiologist",
-    speciality: "Cardiology",
-    experience: "15+ Years",
-    gender: "Female",
-    profileLink: "#",
-    imageUrl: "https://www.shutterstock.com/image-photo/profile-picture-smiling-young-caucasian-600nw-1954278664.jpg",
-  },
-  {
-    name: "Dr. Amy Adams",
-    title: "Orthopedic Surgeon",
-    speciality: "Orthopedics",
-    experience: "12+ Years",
-    gender: "Female",
-    profileLink: "#",
-    imageUrl: "https://www.shutterstock.com/image-photo/profile-picture-smiling-young-caucasian-600nw-1954278664.jpg",
-  },
-  {
-    name: "Dr. Mark Lee",
-    title: "General Surgeon",
-    speciality: "Surgery",
-    experience: "20+ Years",
-    gender: "Male",
-    profileLink: "#",
-    imageUrl: "https://www.shutterstock.com/image-photo/profile-picture-smiling-young-caucasian-600nw-1954278664.jpg",
-  },
-  {
-    name: "Dr. Linda Ford",
-    title: "Dentist",
-    speciality: "Dentistry",
-    experience: "18+ Years",
-    gender: "Female",
-    profileLink: "#",
-    imageUrl: "https://www.shutterstock.com/image-photo/profile-picture-smiling-young-caucasian-600nw-1954278664.jpg",
-  },
-  {
-    name: "Dr. Harry White",
-    title: "Radiologist",
-    speciality: "Radiology",
-    experience: "25+ Years",
-    gender: "Male",
-    profileLink: "#",
-    imageUrl: "https://www.shutterstock.com/image-photo/profile-picture-smiling-young-caucasian-600nw-1954278664.jpg",
-  },
-  {
-    name: "Dr. Sarah Green",
-    title: "Urologist",
-    speciality: "Urology",
-    experience: "22+ Years",
-    gender: "Female",
-    profileLink: "#",
-    imageUrl: "https://www.shutterstock.com/image-photo/profile-picture-smiling-young-caucasian-600nw-1954278664.jpg",
-  },
-  // More additional doctors across other specialities
-  {
-    name: "Dr. Thomas Bright",
-    title: "Consultant Dentist",
-    speciality: "Dentistry",
-    experience: "10+ Years",
-    gender: "Male",
-    profileLink: "#",
-    imageUrl: "https://www.shutterstock.com/image-photo/profile-picture-smiling-young-caucasian-600nw-1954278664.jpg",
-  },
-  {
-    name: "Dr. Oscar Lee",
-    title: "Consultant Orthopedist",
-    speciality: "Orthopedics",
-    experience: "20+ Years",
-    gender: "Male",
-    profileLink: "#",
-    imageUrl: "https://www.shutterstock.com/image-photo/profile-picture-smiling-young-caucasian-600nw-1954278664.jpg",
-  },
-];
-
 const DoctorsPage: React.FC = () => {
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [appointments, setAppointments] = useState<{ date: Date; doctor: string; time: string }[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string>('');
   const [selectedDoctor, setSelectedDoctor] = useState<string | null>(null);
-  const [showCalendar, setShowCalendar] = useState<boolean>(false); // Show calendar only when "Book an Appointment" is clicked
+  const [showCalendar, setShowCalendar] = useState<boolean>(false);
   const [filters, setFilters] = useState({ speciality: '', experience: '' });
+
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        const response = await axios.get('http://localhost:3001/doctors');
+        setDoctors(response.data);
+      } catch (error) {
+        console.error('Failed to fetch doctors', error);
+      }
+    };
+    fetchDoctors();
+  }, []);
 
   const handleBookAppointment = (doctorName: string) => {
     if (!selectedDate || !selectedTime) {
@@ -153,24 +45,19 @@ const DoctorsPage: React.FC = () => {
       time: selectedTime,
     };
     setAppointments([...appointments, newAppointment]);
-    setShowCalendar(false); // Hide the calendar after booking
-    setSelectedDoctor(null); // Reset the selected doctor after booking
+    setShowCalendar(false); 
+    setSelectedDoctor(null);
     alert(`Appointment booked with ${doctorName} on ${selectedDate.toLocaleDateString()} at ${selectedTime}`);
   };
-
 
   const handleCancelAppointment = (doctorName: string) => {
     const updatedAppointments = appointments.filter((appointment) => appointment.doctor !== doctorName);
     setAppointments(updatedAppointments);
-    setSelectedDoctor(null); // Reset the selected doctor
     alert(`Appointment with ${doctorName} has been cancelled.`);
   };
-  
 
   const handleDateChange = (date: Date | null) => {
-    if (date) {
-      setSelectedDate(date);
-    }
+    setSelectedDate(date);
   };
 
   const handleTimeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -193,10 +80,8 @@ const DoctorsPage: React.FC = () => {
 
   return (
     <div className="flex max-w-7xl mx-auto mt-12 p-4">
-      {/* Left Sidebar */}
       <div className="w-1/4 p-4 border-r">
         <h3 className="text-xl font-semibold mb-4">Filters</h3>
-        {/* Speciality Filter */}
         <div className="mb-4">
           <label className="block font-medium">Speciality</label>
           <input
@@ -207,7 +92,6 @@ const DoctorsPage: React.FC = () => {
             className="w-full p-2 border border-gray-300 rounded"
           />
         </div>
-        {/* Experience Filter */}
         <div className="mb-4">
           <label className="block font-medium">Experience</label>
           <input
@@ -218,7 +102,6 @@ const DoctorsPage: React.FC = () => {
             className="w-full p-2 border border-gray-300 rounded"
           />
         </div>
-        {/* Registered Appointments */}
         <div className="mt-8">
           <h3 className="text-xl font-semibold mb-4">Registered Appointments</h3>
           <ul>
@@ -228,8 +111,6 @@ const DoctorsPage: React.FC = () => {
           </ul>
         </div>
       </div>
-
-      {/* Doctors Available */}
       <div className="w-3/4 p-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredDoctors.map((doctor, index) => (
@@ -245,8 +126,6 @@ const DoctorsPage: React.FC = () => {
                 <p className="text-md text-gray-800 font-medium text-center">{doctor.speciality}</p>
                 <p className="text-sm text-gray-500 text-center">Experience: {doctor.experience}</p>
                 <p className="text-sm text-gray-500 text-center">Gender: {doctor.gender}</p>
-
-                {/* Conditional Rendering: "Book Appointment" or "Cancel Appointment" */}
                 <div className="mt-4 text-center">
                   {appointments.some(app => app.doctor === doctor.name) ? (
                     <button
@@ -258,9 +137,8 @@ const DoctorsPage: React.FC = () => {
                   ) : (
                     <button
                       onClick={() => {
-                        setSelectedDoctor(doctor.name); // Select the doctor
-                        setShowCalendar(true); // Show the calendar and time picker
-                        
+                        setSelectedDoctor(doctor.name);
+                        setShowCalendar(true);
                       }}
                       className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
                     >
@@ -268,8 +146,6 @@ const DoctorsPage: React.FC = () => {
                     </button>
                   )}
                 </div>
-
-                {/* Show Calendar and Time Selection Only When Clicking "Book an Appointment" */}
                 {showCalendar && selectedDoctor === doctor.name && (
                   <div className="mt-4 text-center">
                     <div className="mb-4">
@@ -279,7 +155,7 @@ const DoctorsPage: React.FC = () => {
                         dateFormat="yyyy/MM/dd"
                         placeholderText="Select a date"
                         className="w-full p-2 border border-gray-300 rounded"
-                        filterDate={(date) => !isDateBooked(date)} // Filter out dates that are already booked
+                        filterDate={(date) => !isDateBooked(date)}
                       />
                     </div>
                     {selectedDate && (
@@ -310,6 +186,5 @@ const DoctorsPage: React.FC = () => {
     </div>
   );
 };
-
 
 export default DoctorsPage;

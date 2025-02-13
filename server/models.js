@@ -1,15 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
-/* 🔹 Doctor Schema */
-const DoctorSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    specialization: { type: String, required: true, index: true }, // Index for faster queries
-    years_of_experience: { type: Number, required: true },
-    contact_info: { type: String, required: true }
-}, { timestamps: true });
-
-const DoctorModel = mongoose.model("doctors", DoctorSchema);
 
 /* 🔹 Patient Schema */
 const PatientSchema = new mongoose.Schema({
@@ -32,7 +23,7 @@ const PatientSchema = new mongoose.Schema({
     ]
   }, { timestamps: true });
 
-  const MedicineSchema = new mongoose.Schema({
+const MedicineSchema = new mongoose.Schema({
     id: { type: Number, required: true, unique: true },
     name: { type: String, required: true },
     substitutes: { type: [String], default: [] },
@@ -69,4 +60,17 @@ const ChatHistorySchema = new mongoose.Schema({
 
 const ChatHistoryModel = mongoose.model("chat_history", ChatHistorySchema);
 
-export { DoctorModel, PatientModel, ChatHistoryModel,MedicineModel };
+const DoctorSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  title: { type: String, required: true },
+  speciality: { type: String, required: true },
+  experience: { type: String, required: true },
+  gender: { type: String, enum: ["Male", "Female", "Other"], required: true },
+  profileLink: { type: String, default: "#" },
+  imageUrl: { type: String, required: true }
+}, { timestamps: true });
+
+const DoctorModel = mongoose.model("doctors", DoctorSchema);
+
+
+export { DoctorModel, PatientModel, ChatHistoryModel, MedicineModel };
