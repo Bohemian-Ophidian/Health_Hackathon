@@ -25,6 +25,7 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
     });
 
 // Register route
+// Register route without manual hashing
 app.post("/register", async (req, res) => {
     try {
         const { mobile_number, password, ...rest } = req.body;
@@ -34,8 +35,8 @@ app.post("/register", async (req, res) => {
             return res.status(400).json({ message: "User already exists" });
         }
 
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = new PatientModel({ mobile_number, password: hashedPassword, ...rest });
+        // Directly assign the plain password, letting the pre-save hook hash it
+        const newUser = new PatientModel({ mobile_number, password, ...rest });
         await newUser.save();
 
         res.status(201).json({ message: "Registration successful", user: newUser });
@@ -45,6 +46,7 @@ app.post("/register", async (req, res) => {
     }
 });
 
+
 // Login route
 app.post("/login", async (req, res) => {
     try {
@@ -52,21 +54,23 @@ app.post("/login", async (req, res) => {
         const user = await PatientModel.findOne({ mobile_number });
 
         if (!user) {
-            return res.status(400).json({ message: "Invalid Credentials" });
+            return res.status(401).json({ message: "User not found" });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return res.status(400).json({ message: "Password Incorrect" });
+            return res.status(401).json({ message: "Incorrect password" });
         }
 
         const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: "1h" });
 
-        res.json({ message: "Login successful", token, user });
+        res.status(200).json({ message: "Login successful", token, user });
     } catch (err) {
-        res.status(500).json({ message: "Error logging in", error: err.message });
+        console.error("Login error:", err);
+        res.status(500).json({ message: "Server error", error: err.message });
     }
 });
+
 
 // Middleware to verify JWT (handles "Bearer <token>" format)
 const authenticateToken = (req, res, next) => {
