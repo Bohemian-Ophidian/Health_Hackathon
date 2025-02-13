@@ -19,7 +19,7 @@ import (
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/models"
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/llama"
 	"github.com/joho/godotenv" 
-	_ "github.com/lib/pq"
+	"github.com/lib/pq"
 )
 
 
