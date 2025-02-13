@@ -14,10 +14,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/madhav663/prescription-ocr/internal/api"
-	"github.com/madhav663/prescription-ocr/internal/database/schema"
-	"github.com/madhav663/prescription-ocr/internal/models"
-	"github.com/madhav663/prescription-ocr/internal/services/llama"
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/prescription-ocr/internal/api"
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/prescription-ocr/internal/database/schema"
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/prescription-ocr/internal/models"
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/prescription-ocr/internal/services/llama"
 	"github.com/joho/godotenv" 
 	_ "github.com/lib/pq"
 )

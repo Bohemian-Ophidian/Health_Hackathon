@@ -9,9 +9,9 @@ import (
     "reflect"  // Add this for deep comparison
 
     "github.com/DATA-DOG/go-sqlmock"
-    "github.com/madhav663/prescription-ocr/internal/api/handlers"
-    "github.com/madhav663/prescription-ocr/internal/models"
-    "github.com/madhav663/prescription-ocr/internal/services/llama"
+    "github.com/Aanandvyas/Health_Hackathon/prescription-ocr/prescription-ocr/internal/api/handlers"
+    "github.com/Aanandvyas/Health_Hackathon/prescription-ocr/prescription-ocr/internal/models"
+    "github.com/Aanandvyas/Health_Hackathon/prescription-ocr/prescription-ocr/internal/services/llama"
 )
 
 func TestCreateMedication(t *testing.T) {

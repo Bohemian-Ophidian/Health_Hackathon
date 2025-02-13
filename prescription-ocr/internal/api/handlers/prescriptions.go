@@ -4,7 +4,7 @@ import (
    // "encoding/json"
     "net/http"
 
-    "github.com/madhav663/prescription-ocr/internal/models"
+    "github.com/Aanandvyas/Health_Hackathon/prescription-ocr/prescription-ocr/internal/models"
 )
 
 // GetPrescriptionsHandler retrieves all stored prescriptions from the database
