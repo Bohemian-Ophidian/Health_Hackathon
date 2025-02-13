@@ -15,26 +15,46 @@ const Dashboard: React.FC = () => {
     const fetchMedicines = async () => {
       try {
         const response = await fetch("http://localhost:3001/medicines", {
-          headers: { Authorization: token || "" },
+          headers: { Authorization: token ? `Bearer ${token}` : "" },
         });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error("Error fetching medicines:", errorData.message);
+          return;
+        }
+
         const data = await response.json();
-        setMedicines(data);
+        if (Array.isArray(data)) {
+          setMedicines(data);
+        } else {
+          console.error("Unexpected data format", data);
+          setMedicines([]);
+        }
       } catch (error) {
         console.error("Error fetching medicines data:", error);
       }
     };
 
-    fetchMedicines();
+    if (token) {
+      fetchMedicines();
+    }
   }, [token]);
 
   // Function to add a new medicine
   const addMedicine = async () => {
+    if (!token) {
+      console.error("No token found. Please log in again.");
+      return;
+    }
+    
     try {
+      console.log("Adding medicine with token:", token);
       const response = await fetch("http://localhost:3001/add-medicine", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: token || "",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           name: newMedicineName,
@@ -43,8 +63,21 @@ const Dashboard: React.FC = () => {
           time: newMedicineTime,
         }),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Error adding medicine:", errorData.message);
+        return;
+      }
+
       const data = await response.json();
-      setMedicines(data.medicines);
+      if (data.medicines && Array.isArray(data.medicines)) {
+        setMedicines(data.medicines);
+      } else {
+        console.error("Unexpected data format when adding medicine", data);
+        setMedicines([]);
+      }
+
       // Reset the form
       setNewMedicineName("");
       setNewMedicineDescription("");
@@ -53,20 +86,6 @@ const Dashboard: React.FC = () => {
     } catch (error) {
       console.error("Error adding medicine:", error);
     }
-  };
-
-  // Example chart data (for the graph section)
-  const chartData = {
-    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-    datasets: [
-      {
-        label: "Sales",
-        data: [12, 19, 3, 5, 2, 3],
-        borderColor: "rgba(75, 192, 192, 1)",
-        backgroundColor: "rgba(75, 192, 192, 0.2)",
-        tension: 0.4,
-      },
-    ],
   };
 
   return (
@@ -110,7 +129,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Display Medicines */}
-        {medicines.length > 0 ? (
+        {Array.isArray(medicines) && medicines.length > 0 ? (
           <ul className="text-gray-600">
             {medicines.map((medicine, index) => (
               <li key={index} className="mb-2">
@@ -138,15 +157,15 @@ const Dashboard: React.FC = () => {
           {/* Data Polyline */}
           <polyline
             fill="none"
-            stroke={chartData.datasets[0].borderColor}
+            stroke="rgba(75, 192, 192, 1)"
             strokeWidth="3"
-            points={chartData.datasets[0].data
+            points={[12, 19, 3, 5, 2, 3]
               .map((value, index) => `${index * 50 + 50},${200 - value * 10}`)
               .join(" ")}
           />
           {/* X-Axis Labels */}
           <g className="axis x-axis">
-            {chartData.labels.map((label, index) => (
+            {["Jan", "Feb", "Mar", "Apr", "May", "Jun"].map((label, index) => (
               <text key={index} x={index * 50 + 50} y="215" textAnchor="middle" fontSize="12">
                 {label}
               </text>
