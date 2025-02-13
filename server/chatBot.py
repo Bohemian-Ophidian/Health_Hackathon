@@ -88,7 +88,7 @@ def chat_with_bot(chat_request: ChatRequest):
             f"Patient Details:\n"
             f"- Name: {patient['name']}\n"
             f"- Age: {patient['age']}\n"
-            f"- Gender: {patient['gender']}\n"
+            f"- Sex: {patient['sex']}\n"
             f"- Medical History: {patient['medical_history']}\n\n"
             f"Now respond to the following message from the patient:"
         )

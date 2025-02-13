@@ -8,7 +8,7 @@ const MentaAI: React.FC = () => {
     const [patientId, setPatientId] = useState<string | null>(null);
 
     useEffect(() => {
-        setPatientId("67a932d0ca3e10e26a9d8c40"); // Replace with actual patient ID
+        setPatientId("67acb646e99af812934a2111"); // Replace with actual patient ID
     }, []);
 
     const handleSend = async () => {
