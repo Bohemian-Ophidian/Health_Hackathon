@@ -8,7 +8,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Aanandvyas/Health_Hackathon/tree/main/prescription-ocr/internal/database/schema"
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/database/schema"
 )
 
 // connectWithRetry tries to connect to the database with retries.

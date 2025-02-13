@@ -10,10 +10,10 @@ import (
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
-	"github.com/Aanandvyas/Health_Hackathon/tree/main/prescription-ocr/prescription-ocr/internal/api"
-	"github.com/Aanandvyas/Health_Hackathon/tree/main/prescription-ocr/prescription-ocr/internal/database/schema"
-	"github.com/Aanandvyas/Health_Hackathon/tree/main/prescription-ocr/prescription-ocr/internal/models"
-	"github.com/Aanandvyas/Health_Hackathon/tree/main/prescription-ocr/prescription-ocr/internal/services/llama"
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/api"
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/database/schema"
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/models"
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/llama"
 )
 
 func connectWithRetry(dbConfig schema.DBConfig, retries int) (*sql.DB, error) {
