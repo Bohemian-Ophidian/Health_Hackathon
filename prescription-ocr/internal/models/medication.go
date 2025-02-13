@@ -1,64 +1,54 @@
 package models
 
 import (
-	"database/sql"
-	"fmt"
+	"context"
 	"log"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Medication struct {
-	ID           int                    `json:"id"`
-	Name         string                 `json:"name"`
-	Alternatives string                 `json:"alternatives"`
-	SideEffects  string                 `json:"side_effects"`
-	Analysis     map[string]interface{} `json:"analysis,omitempty"`
-	Confidence   float64                 `json:"confidence,omitempty"`
-	CreatedAt    *time.Time              `json:"created_at,omitempty"`
-	UpdatedAt    *time.Time              `json:"updated_at,omitempty"`
+	ID           string bson:"_id,omitempty"
+	Name         string bson:"name"
+	Alternatives string bson:"alternatives"
+	SideEffects  string bson:"side_effects"
+	CreatedAt    time.Time bson:"created_at"
+	UpdatedAt    time.Time bson:"updated_at"
 }
 
 type MedicationModel struct {
-	DB *sql.DB
+	Collection *mongo.Collection
 }
 
-func (m *MedicationModel) GetMedication(id int) (*Medication, error) {
-	if m.DB == nil {
-		log.Println("❌ Database connection is nil")
-		return nil, fmt.Errorf("database connection is nil")
-	}
+func NewMedicationModel(db *mongo.Database) *MedicationModel {
+	return &MedicationModel{Collection: db.Collection("medications")}
+}
 
-	log.Printf("🔍 Querying medication with ID: %d", id)
-
+func (m *MedicationModel) GetMedication(id string) (*Medication, error) {
 	var medication Medication
-	err := m.DB.QueryRow(
-		"SELECT id, name, COALESCE(alternatives, ''), COALESCE(side_effects, ''), created_at, updated_at FROM medications WHERE id = $1", id).
-		Scan(&medication.ID, &medication.Name, &medication.Alternatives, &medication.SideEffects, &medication.CreatedAt, &medication.UpdatedAt)
-
+	err := m.Collection.FindOne(context.TODO(), bson.M{"_id": id}).Decode(&medication)
 	if err != nil {
-		log.Printf("❌ Query failed: %v", err)
 		return nil, err
 	}
-
-	log.Printf("✅ Medication found: %+v", medication)
 	return &medication, nil
 }
 
 func (m *MedicationModel) AddMedication(medication *Medication) error {
-	query := "INSERT INTO medications (name, alternatives, side_effects, created_at, updated_at) VALUES ($1, $2, $3, NOW(), NOW()) RETURNING id, created_at, updated_at"
-	err := m.DB.QueryRow(query, medication.Name, medication.Alternatives, medication.SideEffects).
-		Scan(&medication.ID, &medication.CreatedAt, &medication.UpdatedAt)
+	medication.CreatedAt = time.Now()
+	medication.UpdatedAt = time.Now()
+	_, err := m.Collection.InsertOne(context.TODO(), medication)
 	return err
 }
 
-func (m *MedicationModel) UpdateMedication(medication *Medication) error {
-	query := "UPDATE medications SET name = $1, alternatives = $2, side_effects = $3, updated_at = NOW() WHERE id = $4"
-	_, err := m.DB.Exec(query, medication.Name, medication.Alternatives, medication.SideEffects, medication.ID)
+func (m *MedicationModel) UpdateMedication(id string, medication *Medication) error {
+	medication.UpdatedAt = time.Now()
+	_, err := m.Collection.UpdateOne(context.TODO(), bson.M{"_id": id}, bson.M{"$set": medication})
 	return err
 }
 
-func (m *MedicationModel) DeleteMedication(id int) error {
-	query := "DELETE FROM medications WHERE id = $1"
-	_, err := m.DB.Exec(query, id)
+func (m *MedicationModel) DeleteMedication(id string) error {
+	_, err := m.Collection.DeleteOne(context.TODO(), bson.M{"_id": id})
 	return err
 }

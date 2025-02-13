@@ -8,6 +8,7 @@ import (
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/llama"
 )
 
+// SetupRouter configures the API routes
 func SetupRouter(model *models.MedicationModel, llamaClient *llama.Client) *http.ServeMux {
 	mux := http.NewServeMux()
 
@@ -36,5 +37,3 @@ func SetupRouter(model *models.MedicationModel, llamaClient *llama.Client) *http
 
 	return mux
 }
-
-

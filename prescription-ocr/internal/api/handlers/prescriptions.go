@@ -1,7 +1,7 @@
 package handlers
 
 import (
-   // "encoding/json"
+    "encoding/json"
     "net/http"
 
     "github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/models"
