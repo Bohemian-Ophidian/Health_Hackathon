@@ -4,7 +4,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { PatientModel, ChatHistoryModel } from "./models.js";
+import { PatientModel, ChatHistoryModel, DoctorModel } from "./models.js";
 
 dotenv.config();
 const MONGO_URI = process.env.MONGO_URI;
@@ -108,6 +108,23 @@ app.post("/add-medicine", authenticateToken, async (req, res) => {
         res.status(500).json({ message: "Error adding medicine", error: err.message });
     }
 });
+
+//retrieve doctors
+app.get("/doctors", async (req, res) => {
+    try {
+        console.log('Received GET request for doctors');
+        const doctors = await DoctorModel.find(); // Fetch all doctor records
+
+        if (doctors.length === 0) {
+            return res.status(404).json({ message: "No doctors found" });
+        }
+        res.json(doctors);
+    } catch (err) {
+        console.error("Error fetching doctors:", err);
+        res.status(500).json({ message: "Error fetching doctors", error: err.message });
+    }
+});
+
 
 // Start the server
 app.listen(PORT, () => {
