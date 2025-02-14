@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/api"
-	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/database"
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/database/schema"
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/models"
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/llama"
 )
