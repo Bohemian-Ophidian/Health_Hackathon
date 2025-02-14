@@ -179,3 +179,15 @@ app.get("/doctors", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
 });
+
+
+app.get("/api/getPatientId", authenticateToken, async (req, res) => {
+  try {
+    const patient = await PatientModel.findById(req.user.id);
+    if (!patient) return res.status(404).json({ message: "User not found" });
+    // Convert the ObjectId to a string (optional, as JSON.stringify does this automatically)
+    res.json({ patientId: patient._id.toString() });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching patient", error: error.message });
+  }
+});
