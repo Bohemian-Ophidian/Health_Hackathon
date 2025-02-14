@@ -111,10 +111,6 @@ const DoctorsPage: React.FC = () => {
     setSelectedTime(event.target.value);
   };
 
-  const isDateBooked = (date: Date) => {
-    return appointments.some((appointment) => appointment.date.toDateString() === date.toDateString());
-  };
-
   const timeOptions = ["9:00 AM", "10:00 AM", "11:00 AM", "7:00 PM", "8:00 PM", "9:00 PM", "10:00 PM"].map((time) => (
     <option key={time} value={time}>
       {time}
@@ -128,73 +124,79 @@ const DoctorsPage: React.FC = () => {
   return (
     <div className="flex max-w-7xl mx-auto mt-12 p-4">
       <div className="w-1/4 p-4 border-r">
-        <h3 className="text-xl font-semibold mb-4">Filters</h3>
-        <input
-          type="text"
-          value={filters.speciality}
-          onChange={(e) => setFilters({ ...filters, speciality: e.target.value })}
-          placeholder="Search by speciality"
-          className="w-full p-2 border border-gray-300 rounded mb-4"
-        />
-        <input
-          type="text"
-          value={filters.experience}
-          onChange={(e) => setFilters({ ...filters, experience: e.target.value })}
-          placeholder="Search by experience"
-          className="w-full p-2 border border-gray-300 rounded"
-        />
-        <h3 className="text-xl font-semibold mt-8 mb-4">Your Appointments</h3>
-        <ul>
-          {appointments.map((appointment, index) => (
-            <li key={index} className="mb-2">
-              {`${appointment.doctorName}: ${appointment.date.toLocaleDateString()} at ${appointment.time}`}
-              <button
-                onClick={() => handleCancelAppointment(appointment.doctorId)}
-                className="bg-red-500 text-white px-2 py-1 rounded ml-2"
-              >
-                Cancel
-              </button>
-            </li>
-          ))}
-        </ul>
+      <h3 className="text-xl font-semibold mb-4">Filters</h3>
+      <input
+        type="text"
+        value={filters.speciality}
+        onChange={(e) => setFilters({ ...filters, speciality: e.target.value })}
+        placeholder="Search by speciality"
+        className="w-full p-2 border border-gray-300 rounded mb-4"
+      />
+      <input
+        type="text"
+        value={filters.experience}
+        onChange={(e) => setFilters({ ...filters, experience: e.target.value })}
+        placeholder="Search by experience"
+        className="w-full p-2 border border-gray-300 rounded"
+      />
+      <h3 className="text-xl font-semibold mt-8 mb-4">Your Appointments</h3>
+      <ul>
+        {appointments.map((appointment, index) => (
+        <li key={index} className="mb-2 flex justify-between items-center">
+          <span>{`${appointment.doctorName}: ${appointment.date.toLocaleDateString()} at ${appointment.time}`}</span>
+          <button
+          onClick={() => handleCancelAppointment(appointment.doctorId)}
+          className="bg-red-500 text-white px-2 py-1 rounded ml-2 hover:bg-red-700"
+          >
+          Cancel
+          </button>
+        </li>
+        ))}
+      </ul>
       </div>
       <div className="w-3/4 p-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {doctors.map((doctor) => (
-            <div key={doctor._id} className="border rounded-lg p-4 shadow-md hover:shadow-lg">
-              <img src={doctor.imageUrl} alt={doctor.name} className="w-32 h-32 object-cover rounded-full mx-auto" />
-              <h2 className="font-semibold text-xl text-center mt-2">{doctor.name}</h2>
-              <p className="text-center text-gray-500">{doctor.speciality}</p>
-              <p className="text-center text-gray-500">Experience: {doctor.experience}</p>
-              <div className="text-center mt-4">
-                {appointments.some((app) => app.doctorId === doctor._id) ? (
-                  <button onClick={() => handleCancelAppointment(doctor._id)} className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-700">
-                    Cancel Appointment
-                  </button>
-                ) : (
-                  <button onClick={() => { setSelectedDoctor(doctor); setShowCalendar(true); }} className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-                    Book an Appointment
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-      {showCalendar && selectedDoctor && (
-        <div className="fixed inset-0 flex justify-center items-center bg-gray-900 bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg">
-            <h3 className="text-xl font-semibold mb-4">Select Date and Time</h3>
-            <DatePicker selected={selectedDate} onChange={handleDateChange} inline />
-            <select value={selectedTime} onChange={handleTimeChange} className="mt-4 p-2 border border-gray-300 rounded">
-              <option value="">Select Time</option>
-              {timeOptions}
-            </select>
-            <button onClick={handleBookAppointment} className="bg-green-500 text-white px-4 py-2 rounded-lg mt-4 hover:bg-green-700">
-              Confirm Appointment
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {doctors.map((doctor) => (
+        <div key={doctor._id} className="border rounded-lg p-4 shadow-md hover:shadow-lg">
+          <img src={doctor.imageUrl} alt={doctor.name} className="w-32 h-32 object-cover rounded-full mx-auto" />
+          <h2 className="font-semibold text-xl text-center mt-2">{doctor.name}</h2>
+          <p className="text-center text-gray-500">{doctor.speciality}</p>
+          <p className="text-center text-gray-500">Experience: {doctor.experience}</p>
+          <div className="text-center mt-4">
+          {appointments.some((app) => app.doctorId === doctor._id) ? (
+            <button onClick={() => handleCancelAppointment(doctor._id)} className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+            Cancel Appointment
             </button>
+          ) : (
+            <button onClick={() => { setSelectedDoctor(doctor); setShowCalendar(true); }} className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+            Book an Appointment
+            </button>
+          )}
           </div>
         </div>
+        ))}
+      </div>
+      </div>
+      {showCalendar && selectedDoctor && (
+      <div className="fixed inset-0 flex justify-center items-center bg-gray-900 bg-opacity-50">
+        <div className="bg-white p-6 rounded-lg relative">
+        <button
+          onClick={() => setShowCalendar(false)}
+          className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+        >
+          &times;
+        </button>
+        <h3 className="text-xl font-semibold mb-4">Select Date and Time</h3>
+        <DatePicker selected={selectedDate} onChange={handleDateChange} inline />
+        <select value={selectedTime} onChange={handleTimeChange} className="mt-4 p-2 border border-gray-300 rounded w-full">
+          <option value="">Select Time</option>
+          {timeOptions}
+        </select>
+        <button onClick={handleBookAppointment} className="bg-green-500 text-white px-4 py-2 rounded-lg mt-4 hover:bg-green-700 w-full">
+          Confirm Appointment
+        </button>
+        </div>
+      </div>
       )}
     </div>
   );
