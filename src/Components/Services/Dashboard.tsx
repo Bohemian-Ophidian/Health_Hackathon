@@ -15,7 +15,9 @@ const Dashboard: React.FC = () => {
     const fetchMedicines = async () => {
       try {
         const response = await fetch("http://localhost:3001/medicines", {
-          headers: { Authorization: token ? `Bearer ${token}` : "" },
+          headers: { 
+            Authorization: token ? `Bearer ${token}` : "" // ✅ Correct Bearer format
+          },
         });
 
         if (!response.ok) {

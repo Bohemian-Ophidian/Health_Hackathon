@@ -17,16 +17,17 @@ const Login = () => {
         mobile_number: mobileNumber, // ✅ Fixing field name
         password,
       })
+// In Login.tsx
       .then((res) => {
         console.log("Server Response:", res.data);
 
-          if (res.data.message === "Login successful" && res.data.user) {
-            localStorage.setItem("user", JSON.stringify(res.data.user));
-            navigate("/Hospital-Website");
-            window.location.reload();
-          }
-
-         else {
+        if (res.data.message === "Login successful" && res.data.user) {
+          // Store user data AND token
+          localStorage.setItem("user", JSON.stringify(res.data.user));
+          localStorage.setItem("token", res.data.token); // 🚀 Add this line
+          navigate("/Hospital-Website");
+          window.location.reload();
+        } else {
           setError(res.data.message || "Login failed. Please check your credentials.");
         }
       })

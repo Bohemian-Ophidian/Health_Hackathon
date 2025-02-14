@@ -4,11 +4,11 @@ import cors from "cors";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { PatientModel, ChatHistoryModel, DoctorModel} from "./models.js";
+import { PatientModel, ChatHistoryModel, DoctorModel } from "./models.js";
 
 dotenv.config();
 const MONGO_URI = process.env.MONGO_URI;
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret"; // Use a strong secret key in production
+const JWT_SECRET = process.env.JWT_SECRET; // Use a strong secret key in production
 
 const app = express();
 const PORT = 3001;
@@ -67,7 +67,6 @@ app.post("/login", async (req, res) => {
 
     // Create JWT token with user id as payload
     const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: "1h" });
-
     res.status(200).json({ message: "Login successful", token, user });
   } catch (err) {
     console.error("Login error:", err);
@@ -94,7 +93,7 @@ app.get("/medicines", authenticateToken, async (req, res) => {
   try {
     const user = await PatientModel.findById(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found" });
-    res.json(user.medicines);
+    res.json(user.medicines);``
   } catch (err) {
     res
       .status(500)
@@ -104,36 +103,17 @@ app.get("/medicines", authenticateToken, async (req, res) => {
 
 // Add a new medicine
 app.post("/add-medicine", authenticateToken, async (req, res) => {
-  try {
-    const { name, description, dosage, time } = req.body;
-    const user = await PatientModel.findById(req.user.id);
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    // Add new medicine to the user's medicines array
-    user.medicines.push({ name, description, dosage, time });
-    await user.save();
-
-    res.json({ message: "Medicine added", medicines: user.medicines });
-  } catch (err) {
-    res
-      .status(500)
-      .json({ message: "Error adding medicine", error: err.message });
-  }
-});
-
-//retrieve doctors
-app.get("/doctors", async (req, res) => {
     try {
-        console.log('Received GET request for doctors');
-        const doctors = await DoctorModel.find(); // Fetch all doctor records
-
-        if (doctors.length === 0) {
-            return res.status(404).json({ message: "No doctors found" });
-        }
-        res.json(doctors);
+        const { name, description, dosage, time } = req.body;
+        const user = await PatientModel.findById(req.user.id);
+        if (!user) return res.status(404).json({ message: "User not found" });
+  
+        user.medicines.push({ name, description, dosage, time });
+        await user.save();
+  
+        res.json({ message: "Medicine added", medicines: user.medicines });
     } catch (err) {
-        console.error("Error fetching doctors:", err);
-        res.status(500).json({ message: "Error fetching doctors", error: err.message });
+        res.status(500).json({ message: "Error adding medicine", error: err.message });
     }
 });
 
