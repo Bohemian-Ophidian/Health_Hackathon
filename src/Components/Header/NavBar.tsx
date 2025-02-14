@@ -38,11 +38,11 @@ type Props = {
             <button
               className="text-lg font-bold text-primary hover:text-[#2b7dad] transition duration-500"
             >
-              <Link to="/Hospital-Website">Home</Link>
+              <Link to="/Health Mentá">Home</Link>
             </button>
             <button
               className="text-lg font-bold text-primary hover:text-[#2b7dad] transition duration-500"
-            ><Link to="/Hospital-Website/about">About</Link>
+            ><Link to="/Health Mentá/about">About</Link>
             </button>
 
             {isLoggedIn && (
@@ -50,19 +50,19 @@ type Props = {
             <button
               className="text-lg font-bold text-primary hover:text-[#2b7dad] transition duration-500"
             >
-              <Link to="/Hospital-Website/doctors">Doctors</Link>
+              <Link to="/Health Mentá/doctors">Doctors</Link>
             </button>
             <button
               className="text-lg font-bold text-primary hover:text-[#2b7dad] transition duration-500"
             >
-              <Link to="/Hospital-Website/services">Services</Link>
+              <Link to="/Health Mentá/services">Services</Link>
             </button>
             </>
           )}
 
           </div>
           {!isLoggedIn ? (
-          <Button onClick={() => navigate("/Hospital-Website/login")}>
+          <Button onClick={() => navigate("/Health Mentá/login")}>
             Login
           </Button>
         ) : (
@@ -71,7 +71,7 @@ type Props = {
             localStorage.removeItem("token");
             window.location.reload();
           }}>
-            <Link to="/Hospital-Website/login">Logout</Link>
+            <Link to="/Health Mentá/login">Logout</Link>
           </button>
         )}
         </div>
@@ -99,11 +99,11 @@ type Props = {
             <button
               className="text-lg font-bold text-primary hover:text-[#2b7dad] transition duration-500"
             >
-              <Link to="/Hospital-Website">Home</Link>
+              <Link to="/Health Mentá">Home</Link>
             </button>
             <button
               className="text-lg font-bold text-primary hover:text-[#2b7dad] transition duration-500">
-              <Link to="/Hospital-Website/about">About</Link>
+              <Link to="/Health Mentá/about">About</Link>
             </button>
 
 
@@ -111,19 +111,19 @@ type Props = {
             <>
             <button
               className="text-lg font-bold text-primary hover:text-[#2b7dad] transition duration-500">
-              <Link to="/Hospital-Website/doctors">Doctors</Link>
+              <Link to="/Health Mentá/doctors">Doctors</Link>
             </button>
 
             <button
               className="text-lg font-bold text-primary hover:text-[#2b7dad] transition duration-500">
-              <Link to="/Hospital-Website/services">Services</Link>
+              <Link to="/Health Mentá/services">Services</Link>
             </button>
             </>
           )}
           {!isLoggedIn ? (
           <button 
           className="text-lg font-bold text-primary hover:text-[#2b7dad] transition duration-500">
-            <Link to="/Hospital-Website/login">Login</Link>
+            <Link to="/Health Mentá/login">Login</Link>
           </button>
         ) : (
           <button
