@@ -31,21 +31,6 @@ func NewMedicationModel(db *mongo.Database) *MedicationModel {
 	}
 }
 
-// GetMedication retrieves a medication by ID
-func (m *MedicationModel) GetMedication(ctx context.Context, id string) (*Medication, error) {
-	objID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, err
-	}
-
-	var medication Medication
-	err = m.Collection.FindOne(ctx, bson.M{"_id": objID}).Decode(&medication)
-	if err != nil {
-		return nil, err
-	}
-	return &medication, nil
-}
-
 // AddMedication inserts a new medication into the database
 func (m *MedicationModel) AddMedication(ctx context.Context, medication *Medication) error {
 	medication.ID = primitive.NewObjectID()

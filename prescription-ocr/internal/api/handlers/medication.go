@@ -4,13 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/models"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-// MedicationHandler manages medication routes
+// MedicationHandler handles medication API
 type MedicationHandler struct {
 	Model *models.MedicationModel
 }
@@ -20,44 +18,33 @@ func NewMedicationHandler(model *models.MedicationModel) *MedicationHandler {
 	return &MedicationHandler{Model: model}
 }
 
-// GetMedication retrieves a medication by ID
-func (h *MedicationHandler) GetMedication(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	id := r.URL.Query().Get("id")
-	if id == "" {
-		http.Error(w, "Missing ID parameter", http.StatusBadRequest)
-		return
+// HandleMedications handles different HTTP methods for medications
+func (h *MedicationHandler) HandleMedications(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodPost:
+		h.AddMedication(w, r)
+	case http.MethodPut:
+		h.UpdateMedication(w, r)
+	case http.MethodDelete:
+		h.DeleteMedication(w, r)
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
-
-	medication, err := h.Model.GetMedication(ctx, id)
-	if err != nil {
-		http.Error(w, "Medication not found", http.StatusNotFound)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(medication)
 }
 
-// CreateMedication adds a new medication
-func (h *MedicationHandler) CreateMedication(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
+// AddMedication inserts a new medication into the database
+func (h *MedicationHandler) AddMedication(w http.ResponseWriter, r *http.Request) {
 	var medication models.Medication
-	if err := json.NewDecoder(r.Body).Decode(&medication); err != nil {
+	err := json.NewDecoder(r.Body).Decode(&medication)
+	if err != nil {
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
 	}
 
-	medication.ID = primitive.NewObjectID() // Correct way to assign ObjectID
-	medication.CreatedAt = time.Now()
-	medication.UpdatedAt = time.Now()
-
-	if err := h.Model.AddMedication(ctx, &medication); err != nil {
-		http.Error(w, "Failed to create medication", http.StatusInternalServerError)
+	ctx := context.Background()
+	err = h.Model.AddMedication(ctx, &medication)
+	if err != nil {
+		http.Error(w, "Failed to add medication", http.StatusInternalServerError)
 		return
 	}
 
@@ -67,42 +54,38 @@ func (h *MedicationHandler) CreateMedication(w http.ResponseWriter, r *http.Requ
 
 // UpdateMedication updates an existing medication
 func (h *MedicationHandler) UpdateMedication(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	id := r.URL.Query().Get("id")
-	if id == "" {
-		http.Error(w, "Missing ID parameter", http.StatusBadRequest)
-		return
-	}
-
 	var medication models.Medication
-	if err := json.NewDecoder(r.Body).Decode(&medication); err != nil {
+	err := json.NewDecoder(r.Body).Decode(&medication)
+	if err != nil {
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
 	}
 
-	if err := h.Model.UpdateMedication(ctx, id, &medication); err != nil {
+	ctx := context.Background()
+	err = h.Model.UpdateMedication(ctx, medication.ID.Hex(), &medication)
+	if err != nil {
 		http.Error(w, "Failed to update medication", http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"message": "Medication updated successfully"})
+	json.NewEncoder(w).Encode(medication)
 }
 
-// DeleteMedication deletes a medication
+// DeleteMedication removes a medication from the database
 func (h *MedicationHandler) DeleteMedication(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	id := r.URL.Query().Get("id")
-	if id == "" {
-		http.Error(w, "Missing ID parameter", http.StatusBadRequest)
+	var request struct {
+		ID string `json:"id"`
+	}
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
 	}
 
-	if err := h.Model.DeleteMedication(ctx, id); err != nil {
+	ctx := context.Background()
+	err = h.Model.DeleteMedication(ctx, request.ID)
+	if err != nil {
 		http.Error(w, "Failed to delete medication", http.StatusInternalServerError)
 		return
 	}
