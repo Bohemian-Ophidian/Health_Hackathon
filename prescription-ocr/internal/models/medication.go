@@ -2,53 +2,38 @@ package models
 
 import (
 	"context"
-	"log"
-	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+// Medication struct for MongoDB
 type Medication struct {
-	ID           string bson:"_id,omitempty"
-	Name         string bson:"name"
-	Alternatives string bson:"alternatives"
-	SideEffects  string bson:"side_effects"
-	CreatedAt    time.Time bson:"created_at"
-	UpdatedAt    time.Time bson:"updated_at"
+	ID           string bson:"_id,omitempty" json:"id"
+	Name         string bson:"name" json:"name"
+	Alternatives string bson:"alternatives" json:"alternatives"
+	SideEffects  string bson:"side_effects" json:"side_effects"
 }
 
+// MedicationModel struct
 type MedicationModel struct {
-	Collection *mongo.Collection
+	DB *mongo.Database
 }
 
-func NewMedicationModel(db *mongo.Database) *MedicationModel {
-	return &MedicationModel{Collection: db.Collection("medications")}
+// AddMedication inserts a new medication
+func (m *MedicationModel) AddMedication(medication *Medication) error {
+	collection := m.DB.Collection("medications")
+	_, err := collection.InsertOne(context.TODO(), medication)
+	return err
 }
 
-func (m *MedicationModel) GetMedication(id string) (*Medication, error) {
+// GetMedication fetches a medication by name
+func (m *MedicationModel) GetMedication(name string) (*Medication, error) {
+	collection := m.DB.Collection("medications")
 	var medication Medication
-	err := m.Collection.FindOne(context.TODO(), bson.M{"_id": id}).Decode(&medication)
+	err := collection.FindOne(context.TODO(), bson.M{"name": name}).Decode(&medication)
 	if err != nil {
 		return nil, err
 	}
 	return &medication, nil
-}
-
-func (m *MedicationModel) AddMedication(medication *Medication) error {
-	medication.CreatedAt = time.Now()
-	medication.UpdatedAt = time.Now()
-	_, err := m.Collection.InsertOne(context.TODO(), medication)
-	return err
-}
-
-func (m *MedicationModel) UpdateMedication(id string, medication *Medication) error {
-	medication.UpdatedAt = time.Now()
-	_, err := m.Collection.UpdateOne(context.TODO(), bson.M{"_id": id}, bson.M{"$set": medication})
-	return err
-}
-
-func (m *MedicationModel) DeleteMedication(id string) error {
-	_, err := m.Collection.DeleteOne(context.TODO(), bson.M{"_id": id})
-	return err
 }
