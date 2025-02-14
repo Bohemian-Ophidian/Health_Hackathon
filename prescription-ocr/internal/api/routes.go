@@ -5,27 +5,20 @@ import (
 
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/api/handlers"
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/models"
-	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/llama"
 )
 
-func SetupRouter(model *models.MedicationModel, llamaClient *llama.Client) *http.ServeMux {
+// SetupRouter initializes routes
+func SetupRouter(prescriptionModel *models.PrescriptionModel) *http.ServeMux {
 	mux := http.NewServeMux()
 
-	medicationHandler := handlers.NewMedicationHandler(model, llamaClient)
+	// Initialize handlers
+	prescriptionHandler := handlers.NewPrescriptionHandler(prescriptionModel)
 
-	mux.HandleFunc("/medications", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodPost:
-			medicationHandler.CreateMedication(w, r)
-		case http.MethodGet:
-			medicationHandler.GetMedication(w, r)
-		default:
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		}
-	})
+	mux.HandleFunc("/upload", prescriptionHandler.UploadImageHandler)
+	mux.HandleFunc("/prescriptions", prescriptionHandler.GetPrescriptionsHandler)
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.Error(w, "API is running. Use /medications", http.StatusNotFound)
+		http.Error(w, "API is running", http.StatusNotFound)
 	})
 
 	return mux

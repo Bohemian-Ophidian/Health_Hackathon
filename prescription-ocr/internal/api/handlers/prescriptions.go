@@ -1,56 +1,64 @@
-package models
+package handlers
 
 import (
 	"context"
-	"log"
+	"encoding/json"
+	"net/http"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/models"
 )
 
-// Prescription model for MongoDB
-type Prescription struct {
-	ID            string    bson:"_id,omitempty" json:"id"
-	OriginalImage string    bson:"original_image" json:"original_image"
-	ExtractedText string    bson:"extracted_text" json:"extracted_text"
-	CreatedAt     time.Time bson:"created_at" json:"created_at"
+// PrescriptionHandler struct
+type PrescriptionHandler struct {
+	Model *models.PrescriptionModel
 }
 
-// MongoDB reference
-var DB *mongo.Database
-
-// SavePrescription inserts a prescription into MongoDB
-func SavePrescription(p *Prescription) error {
-	p.CreatedAt = time.Now()
-
-	collection := DB.Collection("prescriptions")
-	_, err := collection.InsertOne(context.TODO(), p)
-	if err != nil {
-		log.Printf("❌ Failed to save prescription: %v", err)
-		return err
-	}
-	log.Println("✅ Prescription saved successfully")
-	return nil
+// NewPrescriptionHandler initializes handler
+func NewPrescriptionHandler(model *models.PrescriptionModel) *PrescriptionHandler {
+	return &PrescriptionHandler{Model: model}
 }
 
-// GetPrescriptions retrieves all prescriptions from MongoDB
-func GetPrescriptions() ([]Prescription, error) {
-	var prescriptions []Prescription
-
-	collection := DB.Collection("prescriptions")
-	cursor, err := collection.Find(context.TODO(), bson.M{})
+// UploadImageHandler handles image uploads and OCR processing
+func (h *PrescriptionHandler) UploadImageHandler(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseMultipartForm(10 << 20) // 10MB max file size
 	if err != nil {
-		return nil, err
+		http.Error(w, "❌ Error parsing form", http.StatusBadRequest)
+		return
 	}
-	defer cursor.Close(context.TODO())
 
-	for cursor.Next(context.TODO()) {
-		var p Prescription
-		if err := cursor.Decode(&p); err != nil {
-			return nil, err
-		}
-		prescriptions = append(prescriptions, p)
+	file, _, err := r.FormFile("image")
+	if err != nil {
+		http.Error(w, "❌ Error retrieving file", http.StatusBadRequest)
+		return
 	}
-	return prescriptions, nil
+	defer file.Close()
+
+	// Process image using OCR (mocked function)
+	extractedText := "Mock extracted text from image"
+
+	// Save to MongoDB
+	prescription := &models.Prescription{
+		OriginalImage: "sample_image.png", // In real case, store actual file name/path
+		ExtractedText: extractedText,
+	}
+
+	err = h.Model.SavePrescription(context.Background(), prescription)
+	if err != nil {
+		http.Error(w, "❌ Error saving prescription", http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(prescription)
+}
+
+// GetPrescriptionsHandler fetches prescriptions
+func (h *PrescriptionHandler) GetPrescriptionsHandler(w http.ResponseWriter, r *http.Request) {
+	prescriptions, err := h.Model.GetPrescriptions(context.Background())
+	if err != nil {
+		http.Error(w, "❌ Failed to retrieve prescriptions", http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(prescriptions)
 }
