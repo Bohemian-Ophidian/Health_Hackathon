@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import DatePicker from 'react-datepicker';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 interface Doctor {
+  _id: string;
   name: string;
   title: string;
   speciality: string;
@@ -13,47 +14,93 @@ interface Doctor {
   imageUrl: string;
 }
 
+interface Appointment {
+  _id?: string;
+  doctorId: string;
+  doctorName: string;
+  date: Date;
+  time: string;
+}
+
 const DoctorsPage: React.FC = () => {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
-  const [appointments, setAppointments] = useState<{ date: Date; doctor: string; time: string }[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedTime, setSelectedTime] = useState<string>('');
-  const [selectedDoctor, setSelectedDoctor] = useState<string | null>(null);
+  const [selectedTime, setSelectedTime] = useState<string>("");
+  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [showCalendar, setShowCalendar] = useState<boolean>(false);
-  const [filters, setFilters] = useState({ speciality: '', experience: '' });
+  const [filters, setFilters] = useState({ speciality: "", experience: "" });
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
-        const response = await axios.get('http://localhost:3001/doctors');
+        const response = await axios.get("http://localhost:3001/doctors");
         setDoctors(response.data);
       } catch (error) {
-        console.error('Failed to fetch doctors', error);
+        console.error("Failed to fetch doctors", error);
       }
     };
-    fetchDoctors();
-  }, []);
 
-  const handleBookAppointment = (doctorName: string) => {
-    if (!selectedDate || !selectedTime) {
+    const fetchAppointments = async () => {
+      try {
+        const response = await axios.get("http://localhost:3001/api/appointments", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setAppointments(response.data);
+      } catch (error) {
+        console.error("Failed to fetch appointments", error);
+      }
+    };
+
+    const fetchData = async () => {
+      setIsLoading(true);
+      await fetchDoctors();
+      if (token) await fetchAppointments();
+      setIsLoading(false);
+    };
+
+    fetchData();
+  }, [token]);
+
+  const handleBookAppointment = async () => {
+    if (!selectedDoctor || !selectedDate || !selectedTime) {
       alert("Please select both a date and a time before booking!");
       return;
     }
-    const newAppointment = {
-      date: selectedDate,
-      doctor: doctorName,
-      time: selectedTime,
-    };
-    setAppointments([...appointments, newAppointment]);
-    setShowCalendar(false); 
-    setSelectedDoctor(null);
-    alert(`Appointment booked with ${doctorName} on ${selectedDate.toLocaleDateString()} at ${selectedTime}`);
+
+    try {
+      await axios.post(
+        "http://localhost:3001/api/appointments/book", // ❌ Might be incorrect
+        { doctorId: selectedDoctor._id, date: selectedDate, time: selectedTime },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+
+      setAppointments([...appointments, { doctorId: selectedDoctor._id, doctorName: selectedDoctor.name, date: selectedDate, time: selectedTime }]);
+      setShowCalendar(false);
+      setSelectedDoctor(null);
+      alert(`Appointment booked with ${selectedDoctor.name} on ${selectedDate.toLocaleDateString()} at ${selectedTime}`);
+    } catch (error) {
+      console.error("Error booking appointment:", error);
+      alert("Failed to book appointment. Please try again.");
+    }
   };
 
-  const handleCancelAppointment = (doctorName: string) => {
-    const updatedAppointments = appointments.filter((appointment) => appointment.doctor !== doctorName);
-    setAppointments(updatedAppointments);
-    alert(`Appointment with ${doctorName} has been cancelled.`);
+  const handleCancelAppointment = async (doctorId: string) => {
+    try {
+      await axios.delete(`http://localhost:3001/api/appointments/${doctorId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setAppointments(appointments.filter((appointment) => appointment.doctorId !== doctorId));
+      alert(`Appointment has been cancelled.`);
+    } catch (error) {
+      console.error("Error cancelling appointment:", error);
+      alert("Failed to cancel appointment.");
+    }
   };
 
   const handleDateChange = (date: Date | null) => {
@@ -65,124 +112,90 @@ const DoctorsPage: React.FC = () => {
   };
 
   const isDateBooked = (date: Date) => {
-    return appointments.some(appointment => appointment.date.toDateString() === date.toDateString());
+    return appointments.some((appointment) => appointment.date.toDateString() === date.toDateString());
   };
 
-  const timeOptions = ['9:00 AM', '10:00 AM', '11:00 AM', '7:00 PM', '8:00 PM', '9:00 PM', '10:00 PM'].map(time => (
-    <option key={time} value={time}>{time}</option>
+  const timeOptions = ["9:00 AM", "10:00 AM", "11:00 AM", "7:00 PM", "8:00 PM", "9:00 PM", "10:00 PM"].map((time) => (
+    <option key={time} value={time}>
+      {time}
+    </option>
   ));
 
-  const filteredDoctors = doctors.filter(
-    (doctor) =>
-      (filters.speciality === '' || doctor.speciality.toLowerCase().includes(filters.speciality.toLowerCase())) &&
-      (filters.experience === '' || doctor.experience.includes(filters.experience))
-  );
+  if (isLoading) {
+    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+  }
 
   return (
     <div className="flex max-w-7xl mx-auto mt-12 p-4">
       <div className="w-1/4 p-4 border-r">
         <h3 className="text-xl font-semibold mb-4">Filters</h3>
-        <div className="mb-4">
-          <label className="block font-medium">Speciality</label>
-          <input
-            type="text"
-            value={filters.speciality}
-            onChange={(e) => setFilters({ ...filters, speciality: e.target.value })}
-            placeholder="Search by speciality"
-            className="w-full p-2 border border-gray-300 rounded"
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block font-medium">Experience</label>
-          <input
-            type="text"
-            value={filters.experience}
-            onChange={(e) => setFilters({ ...filters, experience: e.target.value })}
-            placeholder="Search by experience"
-            className="w-full p-2 border border-gray-300 rounded"
-          />
-        </div>
-        <div className="mt-8">
-          <h3 className="text-xl font-semibold mb-4">Registered Appointments</h3>
-          <ul>
-            {appointments.map((appointment, index) => (
-              <li key={index} className="mb-2">{`${appointment.doctor}: ${appointment.date.toLocaleDateString()} at ${appointment.time}`}</li>
-            ))}
-          </ul>
-        </div>
+        <input
+          type="text"
+          value={filters.speciality}
+          onChange={(e) => setFilters({ ...filters, speciality: e.target.value })}
+          placeholder="Search by speciality"
+          className="w-full p-2 border border-gray-300 rounded mb-4"
+        />
+        <input
+          type="text"
+          value={filters.experience}
+          onChange={(e) => setFilters({ ...filters, experience: e.target.value })}
+          placeholder="Search by experience"
+          className="w-full p-2 border border-gray-300 rounded"
+        />
+        <h3 className="text-xl font-semibold mt-8 mb-4">Your Appointments</h3>
+        <ul>
+          {appointments.map((appointment, index) => (
+            <li key={index} className="mb-2">
+              {`${appointment.doctorName}: ${appointment.date.toLocaleDateString()} at ${appointment.time}`}
+              <button
+                onClick={() => handleCancelAppointment(appointment.doctorId)}
+                className="bg-red-500 text-white px-2 py-1 rounded ml-2"
+              >
+                Cancel
+              </button>
+            </li>
+          ))}
+        </ul>
       </div>
       <div className="w-3/4 p-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredDoctors.map((doctor, index) => (
-            <div key={index} className="flex flex-col border rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-full">
-              <img
-                src={doctor.imageUrl}
-                alt={doctor.name}
-                className="w-32 h-32 object-cover rounded-full mx-auto"
-              />
-              <div className="flex flex-col justify-between flex-grow mt-4">
-                <h2 className="font-semibold text-xl text-center">{doctor.name}</h2>
-                <p className="text-sm text-gray-500 text-center">{doctor.title}</p>
-                <p className="text-md text-gray-800 font-medium text-center">{doctor.speciality}</p>
-                <p className="text-sm text-gray-500 text-center">Experience: {doctor.experience}</p>
-                <p className="text-sm text-gray-500 text-center">Gender: {doctor.gender}</p>
-                <div className="mt-4 text-center">
-                  {appointments.some(app => app.doctor === doctor.name) ? (
-                    <button
-                      onClick={() => handleCancelAppointment(doctor.name)}
-                      className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-700"
-                    >
-                      Cancel Appointment
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => {
-                        setSelectedDoctor(doctor.name);
-                        setShowCalendar(true);
-                      }}
-                      className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                    >
-                      Book an Appointment
-                    </button>
-                  )}
-                </div>
-                {showCalendar && selectedDoctor === doctor.name && (
-                  <div className="mt-4 text-center">
-                    <div className="mb-4">
-                      <DatePicker
-                        selected={selectedDate}
-                        onChange={handleDateChange}
-                        dateFormat="yyyy/MM/dd"
-                        placeholderText="Select a date"
-                        className="w-full p-2 border border-gray-300 rounded"
-                        filterDate={(date) => !isDateBooked(date)}
-                      />
-                    </div>
-                    {selectedDate && (
-                      <select
-                        value={selectedTime}
-                        onChange={handleTimeChange}
-                        className="mt-2 p-2 border border-gray-300 rounded w-full"
-                      >
-                        <option value="">Select a time</option>
-                        {timeOptions}
-                      </select>
-                    )}
-                    <div className="mt-4">
-                      <button
-                        onClick={() => handleBookAppointment(doctor.name)}
-                        className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700 mt-2"
-                      >
-                        Confirm Appointment
-                      </button>
-                    </div>
-                  </div>
+          {doctors.map((doctor) => (
+            <div key={doctor._id} className="border rounded-lg p-4 shadow-md hover:shadow-lg">
+              <img src={doctor.imageUrl} alt={doctor.name} className="w-32 h-32 object-cover rounded-full mx-auto" />
+              <h2 className="font-semibold text-xl text-center mt-2">{doctor.name}</h2>
+              <p className="text-center text-gray-500">{doctor.speciality}</p>
+              <p className="text-center text-gray-500">Experience: {doctor.experience}</p>
+              <div className="text-center mt-4">
+                {appointments.some((app) => app.doctorId === doctor._id) ? (
+                  <button onClick={() => handleCancelAppointment(doctor._id)} className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+                    Cancel Appointment
+                  </button>
+                ) : (
+                  <button onClick={() => { setSelectedDoctor(doctor); setShowCalendar(true); }} className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                    Book an Appointment
+                  </button>
                 )}
               </div>
             </div>
           ))}
         </div>
       </div>
+      {showCalendar && selectedDoctor && (
+        <div className="fixed inset-0 flex justify-center items-center bg-gray-900 bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg">
+            <h3 className="text-xl font-semibold mb-4">Select Date and Time</h3>
+            <DatePicker selected={selectedDate} onChange={handleDateChange} inline />
+            <select value={selectedTime} onChange={handleTimeChange} className="mt-4 p-2 border border-gray-300 rounded">
+              <option value="">Select Time</option>
+              {timeOptions}
+            </select>
+            <button onClick={handleBookAppointment} className="bg-green-500 text-white px-4 py-2 rounded-lg mt-4 hover:bg-green-700">
+              Confirm Appointment
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

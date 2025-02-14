@@ -8,7 +8,7 @@ import { PatientModel, ChatHistoryModel, DoctorModel } from "./models.js";
 
 dotenv.config();
 const MONGO_URI = process.env.MONGO_URI;
-const JWT_SECRET = process.env.JWT_SECRET; // Use a strong secret key in production
+const JWT_SECRET = process.env.JWT_SECRET; 
 
 const app = express();
 const PORT = 3001;
@@ -16,7 +16,7 @@ const PORT = 3001;
 app.use(express.json());
 app.use(cors());
 
-// Connect to MongoDB
+// ✅ Connect to MongoDB
 mongoose
   .connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log("✅ Connected to MongoDB: healthDB"))
@@ -25,59 +25,9 @@ mongoose
     process.exit(1);
   });
 
-// Register route
-app.post("/register", async (req, res) => {
-  try {
-    const { mobile_number, password, ...rest } = req.body;
-
-    // Check if user already exists
-    const existingUser = await PatientModel.findOne({ mobile_number });
-    if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
-    }
-
-    // Create new user using the plain password.
-    // The PatientModel's pre-save hook should hash the password before saving.
-    const newUser = new PatientModel({ mobile_number, password, ...rest });
-    await newUser.save();
-
-    res.status(201).json({ message: "Registration successful", user: newUser });
-  } catch (err) {
-    console.error("Registration error:", err);
-    res
-      .status(500)
-      .json({ message: "Error registering patient", error: err.message });
-  }
-});
-
-// Login route
-app.post("/login", async (req, res) => {
-  try {
-    const { mobile_number, password } = req.body;
-    const user = await PatientModel.findOne({ mobile_number });
-
-    if (!user) {
-      return res.status(401).json({ message: "User not found" });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ message: "Incorrect password" });
-    }
-
-    // Create JWT token with user id as payload
-    const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: "1h" });
-    res.status(200).json({ message: "Login successful", token, user });
-  } catch (err) {
-    console.error("Login error:", err);
-    res.status(500).json({ message: "Server error", error: err.message });
-  }
-});
-
-// Middleware to verify JWT (expects "Bearer <token>" format)
+// ✅ Middleware to verify JWT
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];
-  // Extract token from the "Bearer <token>" string
   const token = authHeader && authHeader.split(" ")[1];
   if (!token) return res.status(401).json({ message: "Access Denied" });
 
@@ -88,53 +38,132 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-// Get user's medicines
+// ✅ Register a new user
+app.post("/register", async (req, res) => {
+  try {
+    const { mobile_number, password, ...rest } = req.body;
+
+    // Check if user already exists
+    const existingUser = await PatientModel.findOne({ mobile_number });
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    // Create new user (password hashing is handled in the model)
+    const newUser = new PatientModel({ mobile_number, password, ...rest });
+    await newUser.save();
+
+    res.status(201).json({ message: "Registration successful", user: newUser });
+  } catch (err) {
+    console.error("Registration error:", err);
+    res.status(500).json({ message: "Error registering patient", error: err.message });
+  }
+});
+
+// ✅ User Login
+app.post("/login", async (req, res) => {
+  try {
+    const { mobile_number, password } = req.body;
+    const user = await PatientModel.findOne({ mobile_number });
+
+    if (!user) return res.status(401).json({ message: "User not found" });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(401).json({ message: "Incorrect password" });
+
+    // Create JWT token
+    const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: "1h" });
+    res.status(200).json({ message: "Login successful", token, user });
+  } catch (err) {
+    console.error("Login error:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
+
+// ✅ Get user's appointments
+app.get("/api/appointments", authenticateToken, async (req, res) => {
+  try {
+    const patient = await PatientModel.findById(req.user.id).populate("appointments.doctor_id");
+    if (!patient) return res.status(404).json({ message: "User not found" });
+
+    res.json(patient.appointments);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching appointments", error: error.message });
+  }
+});
+
+// ✅ Book an appointment
+app.post("/api/appointments/book", authenticateToken, async (req, res) => {
+  try {
+    const { doctorId, date, time } = req.body;
+    const patientId = req.user.id;
+    
+    const doctor = await DoctorModel.findById(doctorId);
+    if (!doctor) return res.status(404).json({ message: "Doctor not found" });
+
+    const patient = await PatientModel.findByIdAndUpdate(
+      patientId,
+      {
+        $push: { 
+          appointments: { doctor_id: doctorId, date, time, status: "Pending" }
+        },
+      },
+      { new: true }
+    );
+
+    if (!patient) return res.status(404).json({ message: "Patient not found" });
+
+    res.status(200).json({ message: "Appointment booked successfully", appointment: patient.appointments });
+
+  } catch (error) {
+    res.status(500).json({ message: "Error booking appointment", error: error.message });
+  }
+});
+
+// ✅ Get user's medicines
 app.get("/medicines", authenticateToken, async (req, res) => {
   try {
     const user = await PatientModel.findById(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found" });
-    res.json(user.medicines);``
+
+    res.json(user.medicines);
   } catch (err) {
-    res
-      .status(500)
-      .json({ message: "Error fetching medicines", error: err.message });
+    res.status(500).json({ message: "Error fetching medicines", error: err.message });
   }
 });
 
-// Add a new medicine
+// ✅ Add a new medicine
 app.post("/add-medicine", authenticateToken, async (req, res) => {
-    try {
-        const { name, description, dosage, time } = req.body;
-        const user = await PatientModel.findById(req.user.id);
-        if (!user) return res.status(404).json({ message: "User not found" });
-  
-        user.medicines.push({ name, description, dosage, time });
-        await user.save();
-  
-        res.json({ message: "Medicine added", medicines: user.medicines });
-    } catch (err) {
-        res.status(500).json({ message: "Error adding medicine", error: err.message });
-    }
+  try {
+    const { name, description, dosage, time } = req.body;
+    const user = await PatientModel.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.medicines.push({ name, description, dosage, time });
+    await user.save();
+
+    res.json({ message: "Medicine added", medicines: user.medicines });
+  } catch (err) {
+    res.status(500).json({ message: "Error adding medicine", error: err.message });
+  }
 });
 
-//retrieve doctors
+// ✅ Retrieve all doctors
 app.get("/doctors", async (req, res) => {
-    try {
-        console.log('Received GET request for doctors');
-        const doctors = await DoctorModel.find(); // Fetch all doctor records
+  try {
+    console.log('Received GET request for doctors');
+    const doctors = await DoctorModel.find(); 
 
-        if (doctors.length === 0) {
-            return res.status(404).json({ message: "No doctors found" });
-        }
-        res.json(doctors);
-    } catch (err) {
-        console.error("Error fetching doctors:", err);
-        res.status(500).json({ message: "Error fetching doctors", error: err.message });
-    }
+    if (doctors.length === 0) return res.status(404).json({ message: "No doctors found" });
+
+    res.json(doctors);
+  } catch (err) {
+    console.error("Error fetching doctors:", err);
+    res.status(500).json({ message: "Error fetching doctors", error: err.message });
+  }
 });
 
-
-// Start the server
+// ✅ Start the server
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
 });

@@ -12,6 +12,12 @@ const PatientSchema = new mongoose.Schema({
     mobile_number: { type: String, unique: true, required: true, index: true },
     password: { type: String, required: true },
     medical_history: { type: [String], default: [] },
+    appointment: {
+      doctor_id: { type: mongoose.Schema.Types.ObjectId, ref: "doctors" },
+      date: { type: String  },
+      time: { type: String },
+      status: { type: String, enum: ["Pending", "Confirmed", "Cancelled"], default: "Pending" }
+  },
     // New field for storing medicines:
     medicines: [
       {
