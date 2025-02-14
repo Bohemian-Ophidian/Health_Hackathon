@@ -28,13 +28,9 @@ const MentaAI: React.FC = () => {
           throw new Error('Failed to fetch patient ID');
         }
   
-        // Use response.text() since the server sends a plain string
-        const data = await response.text();
-        // Trim the data and remove any wrapping quotes
-        const trimmedData = data.trim();
-        const cleanPatientId = trimmedData.replace(/^"|"$/g, '');
-        console.log('Fetched patient ID:', cleanPatientId);
-        setPatientId(cleanPatientId);
+        const data = await response.json();
+        console.log('Fetched patient ID:', data.patientId);
+        setPatientId(data.patientId);
       } catch (error) {
         console.error('Error fetching patient ID:', error);
       }
