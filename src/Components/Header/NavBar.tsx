@@ -64,9 +64,11 @@ type Props = {
         ) : (
           <button onClick={() => {
             localStorage.removeItem("user");
+            localStorage.removeItem("token");
+
             window.location.reload();
           }}>
-            Logout
+            <Link to="/Hospital-Website/login">Logout</Link>
           </button>
         )}
         </div>
