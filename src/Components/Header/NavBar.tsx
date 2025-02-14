@@ -3,6 +3,9 @@ import { SelectedPage } from '@/Components/Shared/Types';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import useMediaQuery from '@/Hooks/useMediaQuery';
+import { useNavigate } from "react-router-dom";
+
+
 
 // import Links from './Links';
 import Button from '../UI/Button';
@@ -15,6 +18,7 @@ type Props = {
 
 
   const NavBar = ({ flexBetween }: { flexBetween: string }) => {
+  const navigate = useNavigate();
     const [isMenuToggled, setIsMenuToggled] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const isAboveMediumScreens = useMediaQuery('(min-width: 900px)');
@@ -58,14 +62,13 @@ type Props = {
 
           </div>
           {!isLoggedIn ? (
-          <Button>
-            <Link to="/Hospital-Website/login">Login</Link>
+          <Button onClick={() => navigate("/Hospital-Website/login")}>
+            Login
           </Button>
         ) : (
           <button onClick={() => {
             localStorage.removeItem("user");
             localStorage.removeItem("token");
-
             window.location.reload();
           }}>
             <Link to="/Hospital-Website/login">Logout</Link>
