@@ -3,6 +3,7 @@ import axios from "axios";
 
 const Dashboard: React.FC = () => {
   const [medicines, setMedicines] = useState<any[]>([]);
+  const [appointments, setAppointments] = useState<any[]>([]);
   const [newMedicine, setNewMedicine] = useState({
     name: "",
     description: "",
@@ -25,8 +26,25 @@ const Dashboard: React.FC = () => {
       }
     };
 
-    if (token) fetchMedicines();
+    const fetchAppointments = async () => {
+      try {
+        const response = await axios.get("http://localhost:3001/api/appointments", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        // Assuming you have a state for appointments
+        setAppointments(response.data);
+      } catch (error) {
+        console.error("Error fetching appointments:", error);
+      }
+    };
+
+    if (token) {
+      fetchMedicines();
+      fetchAppointments();
+    }
   }, [token]);
+
+
 
   // Function to add a new medicine
   const addMedicine = async () => {
@@ -45,6 +63,8 @@ const Dashboard: React.FC = () => {
       );
 
       setMedicines(response.data.medicines);
+      setAppointments(response.data.appointments);
+
       setNewMedicine({ name: "", description: "", dosage: "", time: "" });
     } catch (error) {
       console.error("Error adding medicine:", error);
@@ -120,10 +140,20 @@ const Dashboard: React.FC = () => {
         {/* Add task management logic */}
       </div>
 
-      {/* Notes Section */}
+      {/* Appointment Section */}
       <div className="bg-white shadow-lg rounded-lg p-6">
-        <h2 className="text-xl font-semibold">Appointment</h2>
-        <p className="text-gray-600 mt-2">Appointments will appear here..</p>
+        <h2 className="text-xl font-semibold">Appointments</h2>
+        {appointments.length > 0 ? (
+          appointments.map((appointment, index) => (
+            <li key={index} className="border p-2 rounded mt-2">
+              <strong>{appointment.title}</strong> - {appointment.description}
+              {appointment.date && ` (Date: ${appointment.date})`}
+              {appointment.time && ` (Time: ${appointment.time})`}
+            </li>
+          ))
+        ) : (
+          <p>No appointments added.</p>
+        )}
         {/* Add note-taking functionality */}
       </div>
 

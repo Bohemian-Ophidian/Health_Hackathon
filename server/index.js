@@ -80,13 +80,14 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// ✅ Get user's appointments
 app.get("/api/appointments", authenticateToken, async (req, res) => {
   try {
-    const patient = await PatientModel.findById(req.user.id).populate("appointments.doctor_id");
+    const patient = await PatientModel.findById(req.user.id)
+      .populate("appointments.doctor_id");
     if (!patient) return res.status(404).json({ message: "User not found" });
 
-    res.json(patient.appointments);
+    // Always return an array (if appointments is falsy, send an empty array)
+    res.json(patient.appointments || []);
   } catch (error) {
     res.status(500).json({ message: "Error fetching appointments", error: error.message });
   }
@@ -105,7 +106,13 @@ app.post("/api/appointments/book", authenticateToken, async (req, res) => {
       patientId,
       {
         $push: { 
-          appointments: { doctor_id: doctorId, date, time, status: "Pending" }
+          appointments: { 
+            doctor_id: doctorId, 
+            doctorName: doctor.name, // Ensure doctor name is added
+            date, 
+            time, 
+            status: "Pending" 
+          }
         },
       },
       { new: true }
@@ -113,13 +120,18 @@ app.post("/api/appointments/book", authenticateToken, async (req, res) => {
 
     if (!patient) return res.status(404).json({ message: "Patient not found" });
 
-    res.status(200).json({ message: "Appointment booked successfully", appointment: patient.appointments });
+    res.status(200).json({ 
+      message: "Appointment booked successfully", 
+      appointments: patient.appointments 
+    });
 
   } catch (error) {
-    res.status(500).json({ message: "Error booking appointment", error: error.message });
+    res.status(500).json({ 
+      message: "Error booking appointment", 
+      error: error.message 
+    });
   }
 });
-
 // ✅ Get user's medicines
 app.get("/medicines", authenticateToken, async (req, res) => {
   try {
