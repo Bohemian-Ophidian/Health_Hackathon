@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/api"
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/config"
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/models"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -17,6 +18,12 @@ func main() {
 	// Load .env file (if present)
 	if err := godotenv.Load(); err != nil {
 		log.Println("⚠ No .env file found, using system environment variables")
+	}
+
+	// Load configuration
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		log.Fatalf("Error loading config: %v", err)
 	}
 
 	// MongoDB connection
@@ -31,12 +38,30 @@ func main() {
 	}
 	defer client.Disconnect(nil)
 
+	// Verify the connection to healthDB
+	dbName := os.Getenv("DB_NAME")
+	if dbName == "" {
+		log.Fatal("DB_NAME environment variable is not set")
+	}
+	database := client.Database(dbName)
+	if database == nil {
+		log.Fatalf("Failed to access database: %s", dbName)
+	} else {
+		fmt.Printf("Successfully connected to MongoDB database: %s\n", dbName)
+	}
+
 	// Initialize models
-	prescriptionModel := models.NewPrescriptionModel(client.Database(os.Getenv("DB_NAME")))
-	medicationModel := models.NewMedicationModel(client.Database(os.Getenv("DB_NAME")))
+	prescriptionModel := models.NewPrescriptionModel(database)
+	medicationModel := models.NewMedicationModel(database)
 
 	// Set up the router
 	router := api.SetupRouter(prescriptionModel, medicationModel)
+
+	// You can now access LLaMA API information through the cfg variable
+	// For example, log the LLaMA API URL
+	fmt.Println("LLaMA API URL:", cfg.LLaMA.APIURL)
+
+	// Call the LLaMA API for any necessary processing here
 
 	// Start server
 	port := os.Getenv("SERVER_PORT")

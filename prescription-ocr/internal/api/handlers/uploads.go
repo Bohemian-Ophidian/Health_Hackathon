@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/ocr"
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/ocr"
 )
 
 // UploadHandler handles image uploads

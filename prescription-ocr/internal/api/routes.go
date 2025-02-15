@@ -11,15 +11,31 @@ import (
 func SetupRouter(prescriptionModel *models.PrescriptionModel, medicationModel *models.MedicationModel) *http.ServeMux {
 	mux := http.NewServeMux()
 
-	// Prescription Handlers
+	// Prescription Handlers (Handle both GET and POST)
 	prescriptionHandler := handlers.NewPrescriptionHandler(prescriptionModel)
-	mux.HandleFunc("/prescriptions", prescriptionHandler.GetAllPrescriptionsHandler) // To GET all prescriptions
-	mux.HandleFunc("/prescriptions", prescriptionHandler.AddPrescription)            // To POST a new prescription
+	mux.HandleFunc("/prescriptions", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case "GET":
+			prescriptionHandler.GetAllPrescriptionsHandler(w, r)
+		case "POST":
+			prescriptionHandler.AddPrescription(w, r)
+		default:
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		}
+	})
 
-	// Medication Handlers
+	// Medication Handlers (Handle both GET and POST)
 	medicationHandler := handlers.NewMedicationHandler(medicationModel)
-	mux.HandleFunc("/medications", medicationHandler.GetAllMedications) // To GET all medications
-	mux.HandleFunc("/medications", medicationHandler.AddMedication)     // To POST a new medication
+	mux.HandleFunc("/medications", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case "GET":
+			medicationHandler.GetAllMedications(w, r)
+		case "POST":
+			medicationHandler.AddMedication(w, r)
+		default:
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		}
+	})
 
 	// Upload Route
 	uploadHandler := handlers.NewUploadHandler()                // Assuming an UploadHandler exists
