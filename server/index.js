@@ -149,8 +149,9 @@ app.get("/api/getPatientId", authenticateToken, async (req, res) => {
     const patient = await PatientModel.findById(req.user.id);
     if (!patient) return res.status(404).json({ message: "User not found" });
 
-    // Returning the profile details, including medical history, height, and weight
+    // Include the patient ID in the response
     res.json({ 
+      patient_id: patient._id, 
       name: patient.name, 
       medical_history: patient.medical_history,
       height: patient.height,

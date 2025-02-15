@@ -1,49 +1,50 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 
-	"github.com/joho/godotenv"
-
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/api"
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/models"
-	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/utils"
+	"github.com/joho/godotenv"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func main() {
-	// Load environment variables
+	// Load .env file (if present)
 	if err := godotenv.Load(); err != nil {
 		log.Println("⚠ No .env file found, using system environment variables")
 	}
 
-	// Required environment variables
-	requiredEnvs := []string{"MONGO_URI", "DB_NAME", "SERVER_PORT"}
-	for _, env := range requiredEnvs {
-		if os.Getenv(env) == "" {
-			log.Fatalf("❌ Missing required environment variable: %s", env)
-		}
-	}
-
-	// Connect to MongoDB
-	db, err := utils.ConnectMongoDB(os.Getenv("MONGO_URI"), os.Getenv("DB_NAME"))
+	// MongoDB connection
+	clientOptions := options.Client().ApplyURI(os.Getenv("MONGO_URI"))
+	client, err := mongo.NewClient(clientOptions)
 	if err != nil {
-		log.Fatalf("❌ Failed to connect to MongoDB: %v", err)
+		log.Fatalf("Failed to create MongoDB client: %v", err)
 	}
-	log.Println("✅ Connected to MongoDB successfully")
+	err = client.Connect(nil)
+	if err != nil {
+		log.Fatalf("Failed to connect to MongoDB: %v", err)
+	}
+	defer client.Disconnect(nil)
 
 	// Initialize models
-	// medicationModel := models.NewMedicationModel(db)
-	PrescriptionModel := models.NewPrescriptionModel(db)
+	prescriptionModel := models.NewPrescriptionModel(client.Database(os.Getenv("DB_NAME")))
+	medicationModel := models.NewMedicationModel(client.Database(os.Getenv("DB_NAME")))
 
-	// Setup router
-	router := api.SetupRouter(PrescriptionModel)
+	// Set up the router
+	router := api.SetupRouter(prescriptionModel, medicationModel)
 
 	// Start server
 	port := os.Getenv("SERVER_PORT")
-	log.Printf("🚀 Starting server on port %s", port)
+	if port == "" {
+		port = "8080"
+	}
+	fmt.Printf("🚀 Starting server on port %s\n", port)
 	if err := http.ListenAndServe(":"+port, router); err != nil {
-		log.Fatalf("❌ Failed to start server: %v", err)
+		log.Fatalf("Failed to start server: %v", err)
 	}
 }

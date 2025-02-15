@@ -14,7 +14,6 @@ const MentaAI: React.FC = () => {
         if (!token) {
           throw new Error('No token found');
         }
-        console.log('Token found:', token);
   
         const response = await fetch('http://localhost:3001/api/getPatientId', {
           method: 'GET',
@@ -29,8 +28,7 @@ const MentaAI: React.FC = () => {
         }
   
         const data = await response.json();
-        console.log('Fetched patient ID:', data.patientId);
-        setPatientId(data.patientId);
+        setPatientId(data.patient_id);
       } catch (error) {
         console.error('Error fetching patient ID:', error);
       }
