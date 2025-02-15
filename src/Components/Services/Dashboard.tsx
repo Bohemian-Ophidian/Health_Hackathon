@@ -32,7 +32,6 @@ const Dashboard: React.FC = () => {
         const response = await axios.get("http://localhost:3001/api/appointments", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        // Assuming you have a state for appointments
         setAppointments(response.data);
       } catch (error) {
         console.error("Error fetching appointments:", error);
@@ -44,7 +43,6 @@ const Dashboard: React.FC = () => {
         const response = await axios.get("http://localhost:3001/api/getPatientId", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        // Assuming you return patient data in the response
         setProfile(response.data);
       } catch (error) {
         console.error("Error fetching profile:", error);
@@ -57,8 +55,6 @@ const Dashboard: React.FC = () => {
       fetchProfile();
     }
   }, [token]);
-
-
 
   // Function to add a new medicine
   const addMedicine = async () => {
@@ -77,11 +73,30 @@ const Dashboard: React.FC = () => {
       );
 
       setMedicines(response.data.medicines);
-      setAppointments(response.data.appointments);
 
       setNewMedicine({ name: "", description: "", dosage: "", time: "" });
     } catch (error) {
       console.error("Error adding medicine:", error);
+    }
+  };
+
+  // Function to remove a medicine
+  const removeMedicine = async (medicineId: string) => {
+    if (!token) {
+      alert("Please log in to remove medicines.");
+      return;
+    }
+
+    try {
+      // Send a request to delete the medicine
+      await axios.delete(`http://localhost:3001/remove-medicine/${medicineId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // Remove the medicine from the state
+      setMedicines(medicines.filter(med => med._id !== medicineId));
+    } catch (error) {
+      console.error("Error removing medicine:", (error as any).response ? (error as any).response.data : (error as any).message);
     }
   };
 
@@ -127,11 +142,17 @@ const Dashboard: React.FC = () => {
         <h3 className="mt-6 text-lg font-semibold">Your Medicines</h3>
         <ul className="mt-2 text-gray-600">
           {medicines.length > 0 ? (
-            medicines.map((med, index) => (
-              <li key={index} className="border p-2 rounded mt-2">
+            medicines.map((med) => (
+              <li key={med._id} className="border p-2 rounded mt-2">
                 <strong>{med.name}</strong> - {med.description}
                 {med.dosage && ` (Dosage: ${med.dosage})`}
                 {med.time && ` (Time: ${med.time})`}
+                <button
+                  onClick={() => removeMedicine(med._id)} // Pass medicine ID to remove
+                  className="bg-red-500 text-white px-2 py-1 rounded-lg ml-2"
+                >
+                  Remove
+                </button>
               </li>
             ))
           ) : (
@@ -150,8 +171,7 @@ const Dashboard: React.FC = () => {
       {/* Tasks Section */}
       <div className="bg-white shadow-lg rounded-lg p-6">
         <h2 className="text-xl font-semibold">Tasks</h2>
-        <p className="text-gray-600 mt-2">Manage your tasks...</p>
-        <p className="text-gray-600 mt-2">Manage your daily routine...</p>
+        
         <ul className="mt-2 text-gray-600">
           <li className="border p-2 rounded mt-2">
             <strong>Breakfast</strong> - 8:00 AM

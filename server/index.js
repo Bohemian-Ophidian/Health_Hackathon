@@ -125,6 +125,25 @@ app.get("/api/appointments", authenticateToken, async (req, res) => {
   }
 });
 
+app.delete("/remove-medicine/:medicineId", authenticateToken, async (req, res) => {
+  try {
+    const { medicineId } = req.params;
+    const result = await PatientModel.findByIdAndUpdate(
+      req.user.id,
+      { $pull: { medicines: { _id: medicineId } } },
+      { new: true }
+    );
+    if (!result) return res.status(404).json({ message: "Medicine not found" });
+
+    res.status(204).send(); // No content for successful deletion
+  } catch (error) {
+    console.error("Error removing medicine:", error);
+    res.status(500).json({ message: "Error removing medicine", error: error.message });
+  }
+});
+
+
+
 app.get("/api/getPatientId", authenticateToken, async (req, res) => {
   try {
     const patient = await PatientModel.findById(req.user.id);
