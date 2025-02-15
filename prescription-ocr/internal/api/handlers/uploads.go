@@ -9,23 +9,18 @@ import (
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/models"
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/llama"
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/ocr"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// UploadHandler handles image uploads
 type UploadHandler struct {
-	Database *models.MedicationModel
+	database *mongo.Database
 }
 
-// NewUploadHandler creates a new UploadHandler
-func NewUploadHandler(database *models.MedicationModel) *UploadHandler {
-	return &UploadHandler{
-		Database: database,
-	}
+func NewUploadHandler(database *mongo.Database) *UploadHandler {
+	return &UploadHandler{database: database}
 }
 
-// UploadImageHandler handles image uploads
 func (h *UploadHandler) UploadImageHandler(w http.ResponseWriter, r *http.Request) {
-	// Limit file size to 10MB
 	const MAX_UPLOAD_SIZE = 10 << 20
 	r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
 
@@ -67,7 +62,7 @@ func (h *UploadHandler) UploadImageHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Initialize LLaMA client and analyze the extracted text for medication names
-	llamaClient := llama.NewClient("http://localhost:8080") // Replace with actual LLaMA API URL
+	llamaClient := llama.NewClient("http://localhost:8080")
 	medicationNames, err := llamaClient.AnalyzeMedicationNames(extractedText)
 	if err != nil {
 		http.Error(w, "Failed to analyze medication names", http.StatusInternalServerError)
@@ -77,7 +72,7 @@ func (h *UploadHandler) UploadImageHandler(w http.ResponseWriter, r *http.Reques
 	// Fetch medication details from the database
 	var medicationsDetails []models.MedicationDetails
 	for _, medicationName := range medicationNames {
-		medication, err := h.Database.GetMedicationDetails(r.Context(), medicationName)
+		medication, err := models.NewMedicationModel(h.database).GetMedicationDetails(r.Context(), medicationName)
 		if err != nil {
 			http.Error(w, "Failed to retrieve medication details", http.StatusInternalServerError)
 			return

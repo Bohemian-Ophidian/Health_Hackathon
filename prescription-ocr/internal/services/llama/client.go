@@ -24,6 +24,7 @@ type AnalysisResponse struct {
 	ProcessedAt time.Time              `json:"processed_at"`
 }
 
+// NewClient initializes the LLaMA client with the provided base URL
 func NewClient(baseURL string) *Client {
 	return &Client{
 		BaseURL: baseURL,
@@ -33,6 +34,7 @@ func NewClient(baseURL string) *Client {
 	}
 }
 
+// AnalyzeText sends the OCR text to the LLaMA API for analysis
 func (c *Client) AnalyzeText(ctx context.Context, text string) (*AnalysisResponse, error) {
 	if text == "" {
 		return nil, fmt.Errorf("text cannot be empty")
@@ -72,7 +74,7 @@ func (c *Client) AnalyzeText(ctx context.Context, text string) (*AnalysisRespons
 	return &result, nil
 }
 
-// Client method to extract medication names from OCR text
+// AnalyzeMedication analyzes medication names from extracted text
 func (c *Client) AnalyzeMedicationNames(text string) ([]string, error) {
 	// Use a prompt to extract medication names from the OCR text
 	prompt := fmt.Sprintf(`Extract all medication names from the following text:
@@ -92,4 +94,31 @@ func (c *Client) AnalyzeMedicationNames(text string) ([]string, error) {
 	}
 
 	return medications, nil
+}
+
+// AnalyzeMedication fetches medication details and analysis using LLaMA
+func (c *Client) AnalyzeMedication(ctx context.Context, medicationName string) (map[string]interface{}, error) {
+	// Structured prompt for medication analysis
+	prompt := fmt.Sprintf(`Analyze the following medication:
+	Name: %s
+	
+	Provide:
+	1. Common uses
+	2. Typical dosage
+	3. Side effects
+	4. Interactions
+	5. Precautions`, medicationName)
+
+	// Call the LLaMA analyze method
+	response, err := c.AnalyzeText(ctx, prompt)
+	if err != nil {
+		return nil, fmt.Errorf("failed to analyze medication: %w", err)
+	}
+
+	return map[string]interface{}{
+		"medication_name": medicationName,
+		"analysis":        response.Analysis,
+		"confidence":      response.Confidence,
+		"analyzed_at":     response.ProcessedAt,
+	}, nil
 }
