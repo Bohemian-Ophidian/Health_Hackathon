@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/api"
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/config"
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/models"
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/llama" // Import the LLaMA client
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -55,15 +57,32 @@ func main() {
 	medicationModel := models.NewMedicationModel(database)
 
 	// Set up the router
-	router := api.SetupRouter(prescriptionModel, medicationModel)
+	router := api.SetupRouter(prescriptionModel, medicationModel, database) // Pass database here
 
-	// You can now access LLaMA API information through the cfg variable
-	// For example, log the LLaMA API URL
-	fmt.Println("LLaMA API URL:", cfg.LLaMA.APIURL)
+	// Initialize LLaMA client to interact with the LLaMA API
+	llamaClient := llama.NewClient(cfg.LLaMA.APIURL)
 
-	// Call the LLaMA API for any necessary processing here
+	// Sample text for LLaMA analysis (you can replace this with actual extracted text)
+	sampleText := "Aspirin for headaches"
 
-	// Start server
+	// Retry LLaMA API call in case of failure (try 3 times)
+	for attempt := 1; attempt <= 3; attempt++ {
+		// Call the LLaMA API to analyze the text (you can replace this with extracted text)
+		analysis, err := llamaClient.AnalyzeMedication(context.Background(), sampleText)
+		if err != nil {
+			if attempt == 3 {
+				log.Fatalf("Failed to analyze medication with LLaMA after 3 attempts: %v", err)
+			}
+			log.Printf("Attempt %d: Failed to analyze medication, retrying... Error: %v", attempt, err)
+			continue
+		}
+
+		// Log the result of LLaMA analysis if successful
+		fmt.Printf("LLaMA Analysis Result: %+v\n", analysis)
+		break
+	}
+
+	// Start the server
 	port := os.Getenv("SERVER_PORT")
 	if port == "" {
 		port = "8080"
