@@ -3,6 +3,9 @@ import { SelectedPage } from '@/Components/Shared/Types';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import useMediaQuery from '@/Hooks/useMediaQuery';
+import { useNavigate } from "react-router-dom";
+
+
 
 // import Links from './Links';
 import Button from '../UI/Button';
@@ -15,6 +18,7 @@ type Props = {
 
 
   const NavBar = ({ flexBetween }: { flexBetween: string }) => {
+  const navigate = useNavigate();
     const [isMenuToggled, setIsMenuToggled] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const isAboveMediumScreens = useMediaQuery('(min-width: 900px)');
@@ -34,11 +38,11 @@ type Props = {
             <button
               className="text-lg font-bold text-primary hover:text-[#2b7dad] transition duration-500"
             >
-              <Link to="/Hospital-Website">Home</Link>
+              <Link to="/Health-Mentá">Home</Link>
             </button>
             <button
               className="text-lg font-bold text-primary hover:text-[#2b7dad] transition duration-500"
-            ><Link to="/Hospital-Website/about">About</Link>
+            ><Link to="/Health-Mentá/about">About</Link>
             </button>
 
             {isLoggedIn && (
@@ -46,27 +50,28 @@ type Props = {
             <button
               className="text-lg font-bold text-primary hover:text-[#2b7dad] transition duration-500"
             >
-              <Link to="/Hospital-Website/doctors">Doctors</Link>
+              <Link to="/Health-Mentá/doctors">Doctors</Link>
             </button>
             <button
               className="text-lg font-bold text-primary hover:text-[#2b7dad] transition duration-500"
             >
-              <Link to="/Hospital-Website/services">Services</Link>
+              <Link to="/Health-Mentá/services">Services</Link>
             </button>
             </>
           )}
 
           </div>
           {!isLoggedIn ? (
-          <Button>
-            <Link to="/Hospital-Website/login">Login</Link>
+          <Button onClick={() => navigate("/Health-Mentá/login")}>
+            Login
           </Button>
         ) : (
           <button onClick={() => {
             localStorage.removeItem("user");
+            localStorage.removeItem("token");
             window.location.reload();
           }}>
-            Logout
+            <Link to="/Health-Mentá/login">Logout</Link>
           </button>
         )}
         </div>
@@ -94,11 +99,11 @@ type Props = {
             <button
               className="text-lg font-bold text-primary hover:text-[#2b7dad] transition duration-500"
             >
-              <Link to="/Hospital-Website">Home</Link>
+              <Link to="/Health-Mentá">Home</Link>
             </button>
             <button
               className="text-lg font-bold text-primary hover:text-[#2b7dad] transition duration-500">
-              <Link to="/Hospital-Website/about">About</Link>
+              <Link to="/Health-Mentá/about">About</Link>
             </button>
 
 
@@ -106,19 +111,19 @@ type Props = {
             <>
             <button
               className="text-lg font-bold text-primary hover:text-[#2b7dad] transition duration-500">
-              <Link to="/Hospital-Website/doctors">Doctors</Link>
+              <Link to="/Health-Mentá/doctors">Doctors</Link>
             </button>
 
             <button
               className="text-lg font-bold text-primary hover:text-[#2b7dad] transition duration-500">
-              <Link to="/Hospital-Website/services">Services</Link>
+              <Link to="/Health-Mentá/services">Services</Link>
             </button>
             </>
           )}
           {!isLoggedIn ? (
           <button 
           className="text-lg font-bold text-primary hover:text-[#2b7dad] transition duration-500">
-            <Link to="/Hospital-Website/login">Login</Link>
+            <Link to="/Health-Mentá/login">Login</Link>
           </button>
         ) : (
           <button

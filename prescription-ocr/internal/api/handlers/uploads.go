@@ -1,68 +1,65 @@
 package handlers
 
 import (
-	"encoding/json"
-	
+	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 
-	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/models"
-	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/ocr"
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/ocr"
 )
 
-func UploadImageHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, `{"error": "Invalid request method"}`, http.StatusMethodNotAllowed)
+// UploadHandler handles image uploads
+type UploadHandler struct{}
+
+// NewUploadHandler creates a new UploadHandler
+func NewUploadHandler() *UploadHandler {
+	return &UploadHandler{}
+}
+
+// UploadImageHandler handles the upload of an image
+func (h *UploadHandler) UploadImageHandler(w http.ResponseWriter, r *http.Request) {
+	// Limit file size to 10 MB
+	const MAX_UPLOAD_SIZE = 10 << 20
+	r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
+
+	// Parse the multipart form data
+	err := r.ParseMultipartForm(MAX_UPLOAD_SIZE)
+	if err != nil {
+		http.Error(w, "File too large", http.StatusBadRequest)
 		return
 	}
 
+	// Get the file from the form
 	file, _, err := r.FormFile("image")
 	if err != nil {
-		http.Error(w, `{"error": "Failed to retrieve image"}`, http.StatusBadRequest)
+		http.Error(w, "Failed to get file", http.StatusBadRequest)
 		return
 	}
 	defer file.Close()
 
-	uploadPath := "uploads/sample_text.png"
-	outFile, err := os.Create(uploadPath)
+	// Save the file to the local filesystem
+	dst, err := os.Create("./uploads/uploaded_image.png")
 	if err != nil {
-		http.Error(w, `{"error": "Failed to save image"}`, http.StatusInternalServerError)
+		http.Error(w, "Failed to save file", http.StatusInternalServerError)
 		return
 	}
-	defer outFile.Close()
+	defer dst.Close()
 
-	_, err = io.Copy(outFile, file)
+	_, err = io.Copy(dst, file)
 	if err != nil {
-		http.Error(w, `{"error": "Failed to copy image data"}`, http.StatusInternalServerError)
+		http.Error(w, "Failed to save file", http.StatusInternalServerError)
 		return
 	}
 
-	log.Printf("✅ File uploaded successfully: %s", uploadPath)
-
-	extractedText, err := ocr.ProcessImage(uploadPath)
+	// Process the image (e.g., OCR, etc.)
+	extractedText, err := ocr.ProcessImage("./uploads/uploaded_image.png")
 	if err != nil {
-		http.Error(w, `{"error": "Failed to extract text"}`, http.StatusInternalServerError)
+		http.Error(w, "Failed to process image", http.StatusInternalServerError)
 		return
 	}
 
-	// Save extracted text to DB
-	prescription := models.Prescription{
-		OriginalImage: uploadPath,
-		ExtractedText: extractedText,
-	}
-	if err := models.SavePrescription(&prescription); err != nil {
-		http.Error(w, `{"error": "Failed to store prescription"}`, http.StatusInternalServerError)
-		return
-	}
-
-	response := map[string]interface{}{
-		"message":        "File uploaded and processed successfully",
-		"extracted_text": extractedText,
-		"prescription_id": prescription.ID,
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	// Send a success response
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(fmt.Sprintf("File uploaded successfully. Extracted text: %s", extractedText)))
 }

@@ -1,36 +1,34 @@
-package database
+package schema
 
 import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var DB *mongo.Database
+// MongoDB struct
+type MongoDB struct {
+	Client *mongo.Client
+	DB     *mongo.Database
+}
 
-func ConnectMongoDB() (*mongo.Database, error) {
-	uri := os.Getenv("MONGO_URI")
-	dbName := os.Getenv("MONGO_DB_NAME")
-
-	client, err := mongo.NewClient(options.Client().ApplyURI(uri))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create MongoDB client: %v", err)
-	}
-
+// ConnectMongoDB initializes MongoDB connection
+func ConnectMongoDB(uri, dbName string) (*MongoDB, error) {
+	clientOptions := options.Client().ApplyURI(uri)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	err = client.Connect(ctx)
+	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to MongoDB: %v", err)
+		return nil, fmt.Errorf("❌ Failed to connect to MongoDB: %w", err)
 	}
 
-	DB = client.Database(dbName)
-	log.Println("✅ Connected to MongoDB:", dbName)
-	return DB, nil
+	db := client.Database(dbName)
+	log.Println("✅ Connected to MongoDB!")
+
+	return &MongoDB{Client: client, DB: db}, nil
 }

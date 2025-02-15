@@ -17,16 +17,17 @@ const Login = () => {
         mobile_number: mobileNumber, // ✅ Fixing field name
         password,
       })
+// In Login.tsx
       .then((res) => {
         console.log("Server Response:", res.data);
 
-          if (res.data.message === "Login successful" && res.data.user) {
-            localStorage.setItem("user", JSON.stringify(res.data.user));
-            navigate("/Hospital-Website");
-            window.location.reload();
-          }
-
-         else {
+        if (res.data.message === "Login successful" && res.data.user) {
+          // Store user data AND token
+          localStorage.setItem("user", JSON.stringify(res.data.user));
+          localStorage.setItem("token", res.data.token); // 🚀 Add this line
+          navigate("/Health-Mentá");
+          window.location.reload();
+        } else {
           setError(res.data.message || "Login failed. Please check your credentials.");
         }
       })
@@ -78,7 +79,7 @@ const Login = () => {
           </button>
           <div className="mt-4 text-sm">
             <span className="text-white">
-              Don't have an account? <Link to="/Hospital-Website/register" className="underline">Sign up</Link>
+              Don't have an account? <Link to="/Health-Mentá/register" className="underline">Sign up</Link>
             </span>
           </div>
           <div className="mt-2 text-sm">

@@ -5,34 +5,29 @@ import (
 
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/api/handlers"
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/models"
-	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/llama"
 )
 
-// SetupRouter configures the API routes
-func SetupRouter(model *models.MedicationModel, llamaClient *llama.Client) *http.ServeMux {
+// SetupRouter initializes the HTTP router
+func SetupRouter(prescriptionModel *models.PrescriptionModel, medicationModel *models.MedicationModel) *http.ServeMux {
 	mux := http.NewServeMux()
 
-	medicationHandler := handlers.NewMedicationHandler(model, llamaClient)
-	mux.HandleFunc("/medications", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodPost:
-			medicationHandler.CreateMedication(w, r)
-		case http.MethodGet:
-			medicationHandler.GetMedication(w, r)
-		case http.MethodPut:
-			medicationHandler.UpdateMedication(w, r)
-		case http.MethodDelete:
-			medicationHandler.DeleteMedication(w, r)
-		default:
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		}
-	})
+	// Prescription Handlers
+	prescriptionHandler := handlers.NewPrescriptionHandler(prescriptionModel)
+	mux.HandleFunc("/prescriptions", prescriptionHandler.GetAllPrescriptionsHandler) // To GET all prescriptions
+	mux.HandleFunc("/prescriptions", prescriptionHandler.AddPrescription)            // To POST a new prescription
 
-	mux.HandleFunc("/upload", handlers.UploadImageHandler)
-	mux.HandleFunc("/prescriptions", handlers.GetPrescriptionsHandler)
+	// Medication Handlers
+	medicationHandler := handlers.NewMedicationHandler(medicationModel)
+	mux.HandleFunc("/medications", medicationHandler.GetAllMedications) // To GET all medications
+	mux.HandleFunc("/medications", medicationHandler.AddMedication)     // To POST a new medication
 
+	// Upload Route
+	uploadHandler := handlers.NewUploadHandler()                // Assuming an UploadHandler exists
+	mux.HandleFunc("/upload", uploadHandler.UploadImageHandler) // POST image to the server
+
+	// Default route
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.Error(w, "API is running. Use /medications or /upload", http.StatusNotFound)
+		http.Error(w, "API is running. Use /prescriptions to fetch data, /medications to fetch medications.", http.StatusNotFound)
 	})
 
 	return mux

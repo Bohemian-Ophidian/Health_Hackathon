@@ -13,7 +13,7 @@ const Header = () => {
   const flexBetween = 'flex items-center justify-between';
 
   const handleHomeClick = () => {
-    navigate('/Hospital-Website'); // Navigate to home page
+    navigate('/Health-Mentá'); // Navigate to home page
   };
 
   useEffect(() => {

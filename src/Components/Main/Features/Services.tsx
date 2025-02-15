@@ -42,7 +42,7 @@ const Services = () => {
             ))}
           </ul>
           <div className="lg:ml-5 mt-5">
-          <Button onClick={() => navigate("/Hospital-Website/Doctors")}>
+          <Button onClick={() => navigate("/Health-Mentá/login")}>
               Appointment Now</Button>
           </div>
         </div>

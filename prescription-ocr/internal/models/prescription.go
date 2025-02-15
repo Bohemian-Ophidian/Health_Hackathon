@@ -1,57 +1,60 @@
 package models
 
 import (
-	"database/sql"
-	"encoding/json"
-	"log"
+	"context"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var DB *sql.DB
-
-
+// Prescription represents a prescription document in MongoDB
 type Prescription struct {
-	ID            int       `json:"id"`
-	OriginalImage string    `json:"original_image"`
-	ExtractedText string    `json:"extracted_text"`
-	CreatedAt     time.Time `json:"created_at"`
+	ID            primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	OriginalImage string             `bson:"original_image" json:"original_image"`
+	ExtractedText string             `bson:"extracted_text" json:"extracted_text"`
+	CreatedAt     time.Time          `bson:"created_at,omitempty" json:"created_at"`
 }
 
+// PrescriptionModel handles operations on the prescriptions collection
+type PrescriptionModel struct {
+	Collection *mongo.Collection
+}
 
-func SavePrescription(p *Prescription) error {
-	query := "INSERT INTO prescriptions (original_image, extracted_text, created_at) VALUES ($1, $2, NOW()) RETURNING id"
-	err := DB.QueryRow(query, p.OriginalImage, p.ExtractedText).Scan(&p.ID)
-	if err != nil {
-		log.Printf("Database Insert Error: %v", err)
-		return err
+// NewPrescriptionModel initializes the prescription model
+func NewPrescriptionModel(db *mongo.Database) *PrescriptionModel {
+	return &PrescriptionModel{
+		Collection: db.Collection("prescriptions"),
 	}
-	log.Printf("Prescription stored in DB with ID: %d", p.ID)
-	return nil
 }
 
+// AddPrescription inserts a new prescription into the database
+func (m *PrescriptionModel) AddPrescription(ctx context.Context, prescription *Prescription) error {
+	prescription.ID = primitive.NewObjectID()
+	prescription.CreatedAt = time.Now()
 
-func GetPrescriptions() ([]byte, error) {
-	query := "SELECT id, original_image, extracted_text, created_at FROM prescriptions"
-	rows, err := DB.Query(query)
+	_, err := m.Collection.InsertOne(ctx, prescription)
+	return err
+}
+
+// *GetAllPrescriptions - Retrieves all prescriptions from MongoDB*
+func (m *PrescriptionModel) GetAllPrescriptions(ctx context.Context) ([]Prescription, error) {
+	var prescriptions []Prescription
+
+	cursor, err := m.Collection.Find(ctx, bson.M{})
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer cursor.Close(ctx)
 
-	var prescriptions []Prescription
-	for rows.Next() {
-		var p Prescription
-		err := rows.Scan(&p.ID, &p.OriginalImage, &p.ExtractedText, &p.CreatedAt)
-		if err != nil {
+	for cursor.Next(ctx) {
+		var prescription Prescription
+		if err := cursor.Decode(&prescription); err != nil {
 			return nil, err
 		}
-		prescriptions = append(prescriptions, p)
+		prescriptions = append(prescriptions, prescription)
 	}
 
-	jsonData, err := json.Marshal(prescriptions)
-	if err != nil {
-		return nil, err
-	}
-
-	return jsonData, nil
+	return prescriptions, nil
 }
