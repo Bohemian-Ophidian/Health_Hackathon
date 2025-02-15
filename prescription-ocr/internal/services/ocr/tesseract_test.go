@@ -1,22 +1,20 @@
-package ocr
+package ocr_test
 
 import (
 	"testing"
+
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/ocr" // Replace `your_project` with your actual module name
 )
 
-
 func TestProcessImage(t *testing.T) {
-	
-	testImagePath := "sample_text.png" 
+	imagePath := "E://Codes//Projects//Health_Hackathon//prescription-ocr//cmd//server//uploads//sample_text.png"
 
-	
-	output, err := ProcessImage(testImagePath)
+	text, err := ocr.ProcessImage(imagePath)
 	if err != nil {
 		t.Fatalf("ProcessImage failed: %v", err)
 	}
 
-	
-	if len(output) == 0 {
-		t.Fatalf("ProcessImage returned empty result")
+	if text == "" {
+		t.Fatalf("Expected extracted text but got empty string")
 	}
 }

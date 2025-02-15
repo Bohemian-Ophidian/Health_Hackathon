@@ -71,3 +71,24 @@ func (m *MedicationModel) DeleteMedication(ctx context.Context, id string) error
 	_, err = m.Collection.DeleteOne(ctx, bson.M{"_id": objID})
 	return err
 }
+
+// GetAllMedications retrieves all medications from the database
+func (m *MedicationModel) GetAllMedications(ctx context.Context) ([]Medication, error) {
+	var medications []Medication
+
+	cursor, err := m.Collection.Find(ctx, bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	for cursor.Next(ctx) {
+		var medication Medication
+		if err := cursor.Decode(&medication); err != nil {
+			return nil, err
+		}
+		medications = append(medications, medication)
+	}
+
+	return medications, nil
+}
