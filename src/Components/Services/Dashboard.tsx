@@ -171,8 +171,7 @@ const Dashboard: React.FC = () => {
       {/* Tasks Section */}
       <div className="bg-white shadow-lg rounded-lg p-6">
         <h2 className="text-xl font-semibold">Tasks</h2>
-        <p className="text-gray-600 mt-2">Manage your tasks...</p>
-        <p className="text-gray-600 mt-2">Manage your daily routine...</p>
+        
         <ul className="mt-2 text-gray-600">
           <li className="border p-2 rounded mt-2">
             <strong>Breakfast</strong> - 8:00 AM
