@@ -9,7 +9,7 @@ const HealthCenters = () => {
         src={mapUrl} 
         title="Health Centers Map" 
         width="100%" 
-        height="600px" 
+        height="800vh" 
         style={{ border: 'none' }} 
       />
     </div>

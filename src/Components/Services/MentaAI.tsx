@@ -92,7 +92,7 @@ const MentaAI: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen p-4 bg-gray-100">
+    <div className="flex flex-col h-screen p-4 bg-gray-100 overflow-hidden">
       <div className="flex-none p-4 bg-green-500 text-white rounded-t-lg flex items-center justify-between">
         <h2 className="text-xl font-bold">MentaAI Chat</h2>
       </div>
@@ -108,7 +108,7 @@ const MentaAI: React.FC = () => {
       </div>
 
       {/* Preview of the uploaded image */}
-      {image && <img src={URL.createObjectURL(image)} alt="Captured" className="w-32 h-32 mx-auto mt-2 rounded-md shadow-lg" />}
+      {image && <img src={URL.createObjectURL(image)} alt="Captured" className="w-28 h-28 mx-auto mt-2 rounded-md shadow-lg" />}
 
       <div className="flex-none mt-4">
         <div className="flex">
