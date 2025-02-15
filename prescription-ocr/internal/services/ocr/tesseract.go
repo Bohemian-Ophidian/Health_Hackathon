@@ -1,47 +1,93 @@
-package ocr
+package handlers
 
 import (
-	"context"
-	"fmt"
-	"log"
+	"encoding/json"
+	"io"
+	"net/http"
 	"os"
-	"os/exec"
 
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/models"
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/llama"
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/ocr"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// ProcessImage extracts text using OCR and refines it with LLaMA
-func ProcessImage(imagePath string) (string, error) {
-	// Check if file exists
-	if _, err := os.Stat(imagePath); os.IsNotExist(err) {
-		return "", fmt.Errorf("file does not exist: %s", imagePath)
-	}
+type UploadHandler struct {
+	database *mongo.Database
+}
 
-	log.Println("🛠️ Running Tesseract on:", imagePath)
+func NewUploadHandler(database *mongo.Database) *UploadHandler {
+	return &UploadHandler{database: database}
+}
 
-	// Run Tesseract OCR
-	cmd := exec.Command("tesseract", imagePath, "stdout", "--psm", "6", "--oem", "3")
-	output, err := cmd.CombinedOutput()
+func (h *UploadHandler) UploadImageHandler(w http.ResponseWriter, r *http.Request) {
+	const MAX_UPLOAD_SIZE = 10 << 20
+	r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
 
+	// Parse the multipart form data
+	err := r.ParseMultipartForm(MAX_UPLOAD_SIZE)
 	if err != nil {
-		log.Printf("Tesseract Error: %s\n", string(output))
-		return "", fmt.Errorf("failed to process image: %s", string(output))
+		http.Error(w, "File too large", http.StatusBadRequest)
+		return
 	}
 
-	extractedText := string(output)
-	log.Println("✅ Extracted Text:", extractedText)
-
-	// Initialize LLaMA client
-	llamaClient := llama.NewClient("http://localhost:8080") // Use your actual LLaMA API URL
-
-	// Send extracted text to LLaMA for further processing
-	analysis, err := llamaClient.AnalyzeMedication(context.Background(), extractedText)
+	// Get the file from the form
+	file, _, err := r.FormFile("image")
 	if err != nil {
-		log.Printf("LLaMA Processing Failed: %v", err)
-		return extractedText, nil // Return raw extracted text if LLaMA fails
+		http.Error(w, "Failed to get file", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	// Save the uploaded file
+	dstPath := "./uploads/uploaded_image.png"
+	dst, err := os.Create(dstPath)
+	if err != nil {
+		http.Error(w, "Failed to save file", http.StatusInternalServerError)
+		return
+	}
+	defer dst.Close()
+
+	_, err = io.Copy(dst, file)
+	if err != nil {
+		http.Error(w, "Failed to save file", http.StatusInternalServerError)
+		return
 	}
 
-	log.Println("✅ Analyzed Medication:", analysis)
-	// You can use the analysis data as needed or return it
-	return fmt.Sprintf("Analysis Result: %v", analysis), nil
+	// Extract text using Tesseract
+	extractedText, err := ocr.ProcessImage(dstPath)
+	if err != nil {
+		http.Error(w, "Failed to process image", http.StatusInternalServerError)
+		return
+	}
+
+	// Initialize LLaMA client and analyze the extracted text for medication names
+	llamaClient := llama.NewClient("http://localhost:8080")
+	medicationNames, err := llamaClient.AnalyzeMedicationNames(extractedText)
+	if err != nil {
+		http.Error(w, "Failed to analyze medication names", http.StatusInternalServerError)
+		return
+	}
+
+	// Fetch medication details from the database
+	var medicationsDetails []models.MedicationDetails
+	for _, medicationName := range medicationNames {
+		medication, err := models.NewMedicationModel(h.database).GetMedicationDetails(r.Context(), medicationName)
+		if err != nil {
+			http.Error(w, "Failed to retrieve medication details", http.StatusInternalServerError)
+			return
+		}
+		medicationsDetails = append(medicationsDetails, *medication)
+	}
+
+	// Prepare response with extracted text and medication details
+	response := map[string]interface{}{
+		"message":         "File uploaded successfully",
+		"extracted_text":  extractedText,
+		"medication_info": medicationsDetails,
+	}
+
+	// Send response
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }

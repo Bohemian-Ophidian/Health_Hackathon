@@ -39,7 +39,7 @@ func SetupRouter(prescriptionModel *models.PrescriptionModel, medicationModel *m
 	})
 
 	// Upload Route (Pass the database to the UploadHandler)
-	uploadHandler := handlers.NewUploadHandler(medicationModel) // Pass medicationModel here
+	uploadHandler := handlers.NewUploadHandler(database)        // Pass database here
 	mux.HandleFunc("/upload", uploadHandler.UploadImageHandler) // POST image to the server
 
 	// Default route

@@ -5,8 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
-	"log"
 	"net/http"
 	"time"
 )
@@ -62,15 +60,8 @@ func (c *Client) AnalyzeText(ctx context.Context, text string) (*AnalysisRespons
 		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
-	// Log the full response body to help debug the LLaMA processing
-	responseBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response body: %w", err)
-	}
-	log.Printf("LLaMA Response: %s", string(responseBody)) // Log the response from LLaMA
-
 	var result AnalysisResponse
-	if err := json.Unmarshal(responseBody, &result); err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
@@ -79,32 +70,6 @@ func (c *Client) AnalyzeText(ctx context.Context, text string) (*AnalysisRespons
 	}
 
 	return &result, nil
-}
-
-// ✅ **Fix: Add `AnalyzeMedication` to `client.go`**
-func (c *Client) AnalyzeMedication(ctx context.Context, medicationName string) (map[string]interface{}, error) {
-	// Structured prompt for medication analysis
-	prompt := fmt.Sprintf(`Analyze the following medication:
-	Name: %s
-	
-	Provide:
-	1. Common uses
-	2. Typical dosage
-	3. Side effects
-	4. Interactions
-	5. Precautions`, medicationName)
-
-	response, err := c.AnalyzeText(ctx, prompt)
-	if err != nil {
-		return nil, fmt.Errorf("failed to analyze medication: %w", err)
-	}
-
-	return map[string]interface{}{
-		"medication_name": medicationName,
-		"analysis":        response.Analysis,
-		"confidence":      response.Confidence,
-		"analyzed_at":     response.ProcessedAt,
-	}, nil
 }
 
 // Client method to extract medication names from OCR text

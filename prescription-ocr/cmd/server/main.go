@@ -65,14 +65,22 @@ func main() {
 	// Sample text for LLaMA analysis (you can replace this with actual extracted text)
 	sampleText := "Aspirin for headaches"
 
-	// Call the LLaMA API to analyze the text (you can replace this with extracted text)
-	analysis, err := llamaClient.AnalyzeMedication(context.Background(), sampleText)
-	if err != nil {
-		log.Fatalf("Failed to analyze medication with LLaMA: %v", err)
-	}
+	// Retry LLaMA API call in case of failure (try 3 times)
+	for attempt := 1; attempt <= 3; attempt++ {
+		// Call the LLaMA API to analyze the text (you can replace this with extracted text)
+		analysis, err := llamaClient.AnalyzeMedication(context.Background(), sampleText)
+		if err != nil {
+			if attempt == 3 {
+				log.Fatalf("Failed to analyze medication with LLaMA after 3 attempts: %v", err)
+			}
+			log.Printf("Attempt %d: Failed to analyze medication, retrying... Error: %v", attempt, err)
+			continue
+		}
 
-	// Log the result of LLaMA analysis
-	fmt.Printf("LLaMA Analysis Result: %+v\n", analysis)
+		// Log the result of LLaMA analysis if successful
+		fmt.Printf("LLaMA Analysis Result: %+v\n", analysis)
+		break
+	}
 
 	// Start the server
 	port := os.Getenv("SERVER_PORT")
