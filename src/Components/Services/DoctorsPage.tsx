@@ -113,7 +113,7 @@ const DoctorsPage: React.FC = () => {
       setShowCalendar(false);
     } catch (error: any) {
       console.error("Error booking appointment:", error.response?.data || error.message);
-      alert("Failed to book appointment. Please try again.");
+      alert("Failed to book appointment. Login first.");
     }
   };
   
