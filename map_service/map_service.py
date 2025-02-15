@@ -1,4 +1,4 @@
-mport requests
+import requests
 import folium
 from geopy.geocoders import Nominatim
 
