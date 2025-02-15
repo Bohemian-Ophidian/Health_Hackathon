@@ -17,6 +17,10 @@ def get_hospitals(postal_code: str):
     API endpoint to get hospitals near a postal code.
     """
     hospitals = find_hospitals_osm(postal_code)
+    if isinstance(hospitals, list):
+        generate_map(hospitals)
+        for hospital in hospitals:
+            print(f"🏥 Name: {hospital['name']}\n🌍 Location: {hospital['latitude']}, {hospital['longitude']}\n")
     if hospitals:
         return hospitals
     return []
