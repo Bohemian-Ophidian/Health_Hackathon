@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from typing import List
 from map_service import find_hospitals_osm
+from map_service import generate_map
 from pydantic import BaseModel
 
 app = FastAPI()
