@@ -4,6 +4,7 @@ import axios from "axios";
 const Dashboard: React.FC = () => {
   const [medicines, setMedicines] = useState<any[]>([]);
   const [appointments, setAppointments] = useState<any[]>([]);
+  const [profile, setProfile] = useState<any | null>(null);
   const [newMedicine, setNewMedicine] = useState({
     name: "",
     description: "",
@@ -38,9 +39,22 @@ const Dashboard: React.FC = () => {
       }
     };
 
+    const fetchProfile = async () => {
+      try {
+        const response = await axios.get("http://localhost:3001/api/getPatientId", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        // Assuming you return patient data in the response
+        setProfile(response.data);
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      }
+    };
+
     if (token) {
       fetchMedicines();
       fetchAppointments();
+      fetchProfile();
     }
   }, [token]);
 
@@ -160,8 +174,27 @@ const Dashboard: React.FC = () => {
       {/* Profile Section */}
       <div className="bg-white shadow-lg rounded-lg p-6">
         <h2 className="text-xl font-semibold">Profile</h2>
-        <p className="text-gray-600 mt-2">View and update your profile...</p>
-        {/* Add profile details */}
+        {profile ? (
+          <>
+            <p className="text-gray-600 mt-2">
+              <strong>Name:</strong> {profile.name}
+            </p>
+            <p className="text-gray-600 mt-2">
+              <strong>Medical History:</strong>
+            </p>
+            <ul className="text-gray-600">
+              {profile.medical_history.length > 0 ? (
+                profile.medical_history.map((record: string, index: number) => (
+                  <li key={index}>{record}</li>
+                ))
+              ) : (
+                <p>No medical records available.</p>
+              )}
+            </ul>
+          </>
+        ) : (
+          <p>Loading profile...</p>
+        )}
       </div>
 
       {/* Graph Section */}
