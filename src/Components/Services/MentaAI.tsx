@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { marked } from 'marked';
 
 const MentaAI: React.FC = () => {
@@ -6,15 +6,15 @@ const MentaAI: React.FC = () => {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [patientId, setPatientId] = useState<string | null>(null);
+  const [image, setImage] = useState<File | null>(null);  // Change to store the file directly
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const fetchPatientId = async () => {
       try {
-        const token = localStorage.getItem('token'); // Assuming the token is stored in localStorage
-        if (!token) {
-          throw new Error('No token found');
-        }
-  
+        const token = localStorage.getItem('token');
+        if (!token) throw new Error('No token found');
+
         const response = await fetch('http://localhost:3001/api/getPatientId', {
           method: 'GET',
           headers: {
@@ -22,59 +22,54 @@ const MentaAI: React.FC = () => {
             'Content-Type': 'application/json',
           },
         });
-  
-        if (!response.ok) {
-          throw new Error('Failed to fetch patient ID');
-        }
-  
+
+        if (!response.ok) throw new Error('Failed to fetch patient ID');
+
         const data = await response.json();
         setPatientId(data.patient_id);
       } catch (error) {
         console.error('Error fetching patient ID:', error);
       }
     };
-  
+
     fetchPatientId();
   }, []);
-  
-  
+
   const handleSend = async () => {
-    if (!input.trim()) {
+    if (!input.trim() && !image) {
       console.warn('Cannot send an empty message.');
       return;
     }
     if (!patientId) {
-      console.error('Patient ID is not available.');
       alert('Patient ID is not available. Please wait until it is fetched.');
       return;
     }
-  
-    // Log the patient ID before sending
-    console.log('Using patientId:', patientId);
+
     const timestamp = new Date().toLocaleTimeString();
-    setMessages((prev) => [...prev, { user: 'You', text: input, timestamp }]);
+    setMessages((prev) => [...prev, { user: 'You', text: input || '[Image Sent]', timestamp }]);
     setLoading(true);
-  
+
     try {
-      const response = await fetch('http://localhost:8000/chat/chatWithBot', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          patient_id: patientId,
-          user_message: input,
-        }),
-      });
-  
-      if (!response.ok) {
-        throw new Error('Error connecting to chat server');
+      const formData = new FormData();
+      formData.append("patient_id", patientId);
+      formData.append("user_message", input);
+
+      // If an image is selected, append it to the FormData
+      if (image) {
+        formData.append("image", image, image.name);  // Send file as it is
       }
-  
+
+      const response = await fetch('http://localhost:8000/chat/uploadImage', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error('Error connecting to chat server');
+
       const data = await response.json();
-      const botResponse = data.bot_response || "No response received.";
-  
       setMessages((prevMessages) => [
         ...prevMessages,
-        { user: 'MentaAI', text: botResponse, timestamp: new Date().toLocaleTimeString() },
+        { user: 'MentaAI', text: data.bot_response, timestamp: new Date().toLocaleTimeString() },
       ]);
     } catch (error) {
       console.error('Error:', error);
@@ -83,21 +78,19 @@ const MentaAI: React.FC = () => {
         { user: 'MentaAI', text: 'Error connecting to the server.', timestamp: new Date().toLocaleTimeString() },
       ]);
     }
-  
+
     setLoading(false);
     setInput('');
+    setImage(null);  // Reset the image after sending
   };
-  
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && !loading && patientId) {
-      handleSend();
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setImage(file);  // Store the file directly in state
     }
   };
-  
-  const createMarkup = (text: string) => {
-    return { __html: text ? marked(text) : "No content available." };
-  };
-  
+
   return (
     <div className="flex flex-col h-screen p-4 bg-gray-100">
       <div className="flex-none p-4 bg-green-500 text-white rounded-t-lg flex items-center justify-between">
@@ -105,38 +98,33 @@ const MentaAI: React.FC = () => {
       </div>
       <div className="flex-1 p-4 bg-white rounded-b-lg shadow-md overflow-y-auto">
         {messages.map((message, index) => (
-          <div
-            key={index}
-            className={`mb-3 p-3 rounded-lg ${
-              message.user === 'You' ? 'bg-green-100 self-end' : 'bg-gray-200 self-start'
-            }`}
-          >
+          <div key={index} className={`mb-3 p-3 rounded-lg ${message.user === 'You' ? 'bg-green-100 self-end' : 'bg-gray-200 self-start'}`}>
             <strong>{message.user}:</strong>
             <span className="text-xs text-gray-500"> {message.timestamp}</span>
-            <div dangerouslySetInnerHTML={createMarkup(message.text)} />
+            <div dangerouslySetInnerHTML={{ __html: marked(message.text) }} />
           </div>
         ))}
         {loading && <p className="text-gray-500 italic">MentaAI is typing...</p>}
       </div>
-      <div className="flex-none mt-4" style={{ height: '20%' }}>
+
+      {/* Preview of the uploaded image */}
+      {image && <img src={URL.createObjectURL(image)} alt="Captured" className="w-32 h-32 mx-auto mt-2 rounded-md shadow-lg" />}
+
+      <div className="flex-none mt-4">
         <div className="flex">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyPress}
-            placeholder={!patientId ? "Fetching patient details..." : "Type your message..."}
+            placeholder="Type your message..."
             className="flex-1 p-2 border rounded-l-lg"
-            disabled={!patientId || loading}
           />
-          <button
-            onClick={handleSend}
-            className="p-2 bg-green-500 text-white rounded-r-lg"
-            disabled={loading || !patientId}
-          >
-            {loading ? "Sending..." : "Send"}
+          <button onClick={() => fileInputRef.current?.click()} className="p-2 bg-blue-500 text-white">📷</button>
+          <button onClick={handleSend} className="p-2 bg-green-500 text-white rounded-r-lg" disabled={loading}>
+            {loading ? 'Sending...' : 'Send'}
           </button>
         </div>
+        <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" hidden />
       </div>
     </div>
   );

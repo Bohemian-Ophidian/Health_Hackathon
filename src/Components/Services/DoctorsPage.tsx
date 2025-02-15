@@ -229,15 +229,15 @@ const DoctorsPage: React.FC = () => {
                     Cancel Appointment
                   </button>
                 ) : (
-                  <button
+                    <button
                     onClick={() => {
                       setSelectedDoctor(doctor);
                       setShowCalendar(true);
                     }}
-                    className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                  >
+                    className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700 mt-auto"
+                    >
                     Book an Appointment
-                  </button>
+                    </button>
                 )}
               </div>
             </div>
