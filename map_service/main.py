@@ -1,25 +1,30 @@
 from fastapi import FastAPI
-from typing import List
-from map_service import find_hospitals_osm
-from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
+import os
 
 app = FastAPI()
 
-# Define the response model
-class Hospital(BaseModel):
-    name: str
-    latitude: float
-    longitude: float
+# Update the origins with the correct frontend URL
+origins = [
+    "http://localhost:5175",  # If your frontend might run on different ports, include them
+    "http://localhost:5176"   # Add the current port the frontend is using
+]
 
-@app.get("/api/hospitals/{postal_code}", response_model=List[Hospital])
-def get_hospitals(postal_code: str):
-    """
-    API endpoint to get hospitals near a postal code.
-    """
-    hospitals = find_hospitals_osm(postal_code)
-    if hospitals:
-        return hospitals
-    return []
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  # Allow all the origins in the list
+    allow_credentials=True,
+    allow_methods=["*"],    # Allow all methods
+    allow_headers=["*"],    # Allow all headers
+)
+
+@app.get("/map")
+def get_map():
+    map_path = "map.html"  # Ensure this is the correct path to your map file
+    if os.path.exists(map_path):
+        return FileResponse(map_path)
+    else:
+        return {"error": "Map file not found."}
 
 if __name__ == "__main__":
     import uvicorn
