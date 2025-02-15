@@ -96,7 +96,7 @@ const Dashboard: React.FC = () => {
       // Remove the medicine from the state
       setMedicines(medicines.filter(med => med._id !== medicineId));
     } catch (error) {
-      console.error("Error removing medicine:", error);
+      console.error("Error removing medicine:", (error as any).response ? (error as any).response.data : (error as any).message);
     }
   };
 
@@ -142,8 +142,8 @@ const Dashboard: React.FC = () => {
         <h3 className="mt-6 text-lg font-semibold">Your Medicines</h3>
         <ul className="mt-2 text-gray-600">
           {medicines.length > 0 ? (
-            medicines.map((med, index) => (
-              <li key={index} className="border p-2 rounded mt-2">
+            medicines.map((med) => (
+              <li key={med._id} className="border p-2 rounded mt-2">
                 <strong>{med.name}</strong> - {med.description}
                 {med.dosage && ` (Dosage: ${med.dosage})`}
                 {med.time && ` (Time: ${med.time})`}
