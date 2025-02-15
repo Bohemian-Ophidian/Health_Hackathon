@@ -1,52 +1,39 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import { LatLngExpression } from 'leaflet'; 
-import 'leaflet/dist/leaflet.css';
-
-interface Hospital {
-  name: string;
-  latitude: number;
-  longitude: number;
-}
+import React, { useEffect, useState } from 'react';
 
 const HealthCenters = () => {
-  const [hospitals, setHospitals] = useState<Hospital[]>([]);
-  const [postalCode, setPostalCode] = useState<string>('411001'); // Example postal code for Pune
-
+  const [mapUrl, setMapUrl] = useState('');
+  const suppressSVGErrors = () => {
+    const oldConsoleError = console.error;
+    console.error = function (message, ...args) {
+      if (typeof message === 'string' && message.includes('Expected length')) return;
+      oldConsoleError(message, ...args);
+    };
+  };
   useEffect(() => {
-    // Fetch the hospitals data from FastAPI
-    axios
-      .get(`http://localhost:8000/api/hospitals/${postalCode}`)
-      .then((response) => setHospitals(response.data))
-      .catch((error) => console.error('Error fetching hospitals:', error));
-  }, [postalCode]);
+    const fetchMap = async () => {
+      try {
+        const response = await fetch('/');
+        if (!response.ok) {
+          throw new Error('Failed to fetch the map');
+        }
+        setMapUrl(response.url);
+      } catch (error) {
+        console.error('Error fetching map:', error);
+      }
+    };
 
-  const defaultCenter: LatLngExpression = [20.5937, 78.9629]; // Default center (India)
+    fetchMap();
+    suppressSVGErrors();
+  }, []);
 
   return (
     <div>
-      <h1>Nearby Health Centers</h1>
-      <div style={{ marginBottom: '10px' }}>
-        <label htmlFor="postalCode">Enter Postal Code: </label>
-        <input
-          type="text"
-          id="postalCode"
-          value={postalCode}
-          onChange={(e) => setPostalCode(e.target.value)}
-        />
-      </div>
-
-      <MapContainer center={defaultCenter} zoom={5} style={{ height: '560px', width: '100%' }}>
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        {hospitals.map((hospital) => (
-          <Marker key={hospital.name} position={[hospital.latitude, hospital.longitude]}>
-            <Popup>{hospital.name}</Popup>
-          </Marker>
-        ))}
-      </MapContainer>
+      <h1>Nearby Health Centers Map</h1>
+      {mapUrl ? (
+        <iframe src={mapUrl} width="100%" height="600px" style={{ border: "none" }} title="Health Centers Map" />
+      ) : (
+        <p>Loading map...</p>
+      )}
     </div>
   );
 };

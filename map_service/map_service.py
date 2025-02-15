@@ -67,15 +67,15 @@ def generate_map(hospitals):
     m.save(map_file)
     print(f"✅ Map saved as {map_file}. Open this file in your browser to view the locations.")
 
-if __name__=="main":
 
-    postal_code = "411001"  # postal code: Pune, India
-    hospitals = find_hospitals_osm(postal_code)
 
-    if isinstance(hospitals, list):
-        generate_map(hospitals)
-        for hospital in hospitals:
-            print(f"🏥 Name: {hospital['name']}\n🌍 Location: {hospital['latitude']}, {hospital['longitude']}\n")
-    else:
-        print(hospitals)
+postal_code = "466"  # postal code: Pune, India
+hospitals = find_hospitals_osm(postal_code)
+
+if isinstance(hospitals, list):
+    generate_map(hospitals)
+    for hospital in hospitals:
+        print(f"🏥 Name: {hospital['name']}\n🌍 Location: {hospital['latitude']}, {hospital['longitude']}\n")
+else:
+    print(hospitals)
 
