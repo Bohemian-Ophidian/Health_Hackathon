@@ -38,6 +38,38 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+
+app.delete("/api/appointments/:appointmentId", authenticateToken, async (req, res) => {
+
+  try {
+    const { appointmentId } = req.params; // Extract the appointmentId from the URL
+
+    // Ensure the patient owns this appointment
+    const patient = await PatientModel.findById(req.user.id);
+    if (!patient) return res.status(404).json({ message: "Patient not found" });
+
+    // Remove the appointment by its _id
+    const updatedPatient = await PatientModel.findByIdAndUpdate(
+      req.user.id,
+      {
+        $pull: { appointments: { _id: appointmentId } }, // Remove the appointment by _id
+      },
+      { new: true }
+    );
+
+    if (!updatedPatient) {
+      return res.status(404).json({ message: "Appointment not found or already cancelled" });
+    }
+
+    res.status(204).send(); // No content for successful deletion
+  } catch (error) {
+    console.error("Error cancelling appointment:", error);
+    res.status(500).json({ message: "Failed to cancel appointment", error: error.message });
+  }
+});
+
+
+
 // ✅ Register a new user
 app.post("/register", async (req, res) => {
   try {
@@ -163,7 +195,7 @@ app.post("/add-medicine", authenticateToken, async (req, res) => {
 // ✅ Retrieve all doctors
 app.get("/doctors", async (req, res) => {
   try {
-    console.log('Received GET request for doctors');
+    
     const doctors = await DoctorModel.find(); 
 
     if (doctors.length === 0) return res.status(404).json({ message: "No doctors found" });

@@ -23,7 +23,7 @@ const PatientSchema = new mongoose.Schema({
   appointments: [{
     doctor_id: { 
       type: mongoose.Schema.Types.ObjectId, 
-      ref: "Doctor"  // Reference now matches the registered model name below
+      ref: "Doctor"  
     },
     doctorName: String,
     date: Date,
