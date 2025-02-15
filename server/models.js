@@ -42,19 +42,7 @@ const PatientSchema = new mongoose.Schema({
   }]
 }, { timestamps: true });
 
-const MedicineSchema = new mongoose.Schema({
-  id: { type: Number, required: true, unique: true },
-  name: { type: String, required: true },
-  substitutes: { type: [String], default: [] },
-  sideEffects: { type: [String], default: [] },
-  uses: { type: [String], default: [] },
-  chemical_class: { type: String, default: "NA" },
-  habit_forming: { type: String, default: "No" },
-  therapeutic_class: { type: String, default: "NA" },
-  action_class: { type: String, default: "NA" }
-}, { timestamps: true });
 
-const MedicineModel = mongoose.model("medicines", MedicineSchema);
 
 /* 🔹 Hash password before saving */
 PatientSchema.pre("save", async function (next) {
@@ -90,4 +78,4 @@ const DoctorSchema = new mongoose.Schema({
 // Change here: register the Doctor model with the name "Doctor"
 const DoctorModel = mongoose.model("Doctor", DoctorSchema);
 
-export { DoctorModel, PatientModel, ChatHistoryModel, MedicineModel };
+export { DoctorModel, PatientModel, ChatHistoryModel };
