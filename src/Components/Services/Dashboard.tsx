@@ -151,7 +151,23 @@ const Dashboard: React.FC = () => {
       <div className="bg-white shadow-lg rounded-lg p-6">
         <h2 className="text-xl font-semibold">Tasks</h2>
         <p className="text-gray-600 mt-2">Manage your tasks...</p>
-        {/* Add task management logic */}
+        <p className="text-gray-600 mt-2">Manage your daily routine...</p>
+        <ul className="mt-2 text-gray-600">
+          <li className="border p-2 rounded mt-2">
+            <strong>Breakfast</strong> - 8:00 AM
+          </li>
+          <li className="border p-2 rounded mt-2">
+            <strong>Lunch</strong> - 1:00 PM
+          </li>
+          <li className="border p-2 rounded mt-2">
+            <strong>Dinner</strong> - 7:00 PM
+          </li>
+          {medicines.length > 0 && medicines.map((med, index) => (
+            <li key={index} className="border p-2 rounded mt-2">
+              <strong>{med.name}</strong> - {med.time}
+            </li>
+          ))}
+        </ul>
       </div>
 
       {/* Appointment Section */}
@@ -176,21 +192,27 @@ const Dashboard: React.FC = () => {
         <h2 className="text-xl font-semibold">Profile</h2>
         {profile ? (
           <>
-            <p className="text-gray-600 mt-2">
-              <strong>Name:</strong> {profile.name}
-            </p>
-            <p className="text-gray-600 mt-2">
-              <strong>Medical History:</strong>
-            </p>
-            <ul className="text-gray-600">
-              {profile.medical_history.length > 0 ? (
-                profile.medical_history.map((record: string, index: number) => (
-                  <li key={index}>{record}</li>
-                ))
-              ) : (
-                <p>No medical records available.</p>
-              )}
-            </ul>
+        <p className="text-gray-600 mt-2">
+          <strong>Name:</strong> {profile.name}
+        </p>
+        <p className="text-gray-600 mt-2">
+          <strong>Height:</strong> {profile.height} cm
+        </p>
+        <p className="text-gray-600 mt-2">
+          <strong>Weight:</strong> {profile.weight} kg
+        </p>
+        <p className="text-gray-600 mt-2">
+          <strong>Medical History:</strong>
+        </p>
+        <ul className="text-gray-600">
+          {profile.medical_history.length > 0 ? (
+            profile.medical_history.map((record: string, index: number) => (
+          <li key={index}>{record}</li>
+            ))
+          ) : (
+            <p>No medical records available.</p>
+          )}
+        </ul>
           </>
         ) : (
           <p>Loading profile...</p>
@@ -199,7 +221,7 @@ const Dashboard: React.FC = () => {
 
       {/* Graph Section */}
       <div className="bg-white shadow-lg rounded-lg p-6">
-        <h2 className="text-xl font-semibold">Graph</h2>
+        <h2 className="text</svg>-xl font-semibold">Graph</h2>
         <svg viewBox="0 0 400 220" width="100%" height="auto">
           <rect width="100%" height="220" fill="white" />
           <line x1="50" y1="0" x2="50" y2="200" stroke="black" strokeWidth="2" />

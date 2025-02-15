@@ -50,8 +50,7 @@ const DoctorsPage: React.FC = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         console.log("Response data:", response.data);
-        // Normalize the response: if response.data is an array use it;
-        // otherwise, if response.data.appointments exists and is an array, use that.
+       
         let appointmentsArray: any[] = [];
         if (Array.isArray(response.data)) {
           appointmentsArray = response.data;
@@ -60,7 +59,7 @@ const DoctorsPage: React.FC = () => {
         }
         const appointmentsData = appointmentsArray.map((appointment: any) => ({
           ...appointment,
-          // Normalize the doctor id field to doctorId
+       
           doctorId: appointment.doctorId || appointment.doctor_id,
           date: new Date(appointment.date),
         }));
@@ -186,7 +185,7 @@ const DoctorsPage: React.FC = () => {
         />
         <h3 className="text-xl font-semibold mt-8 mb-4">Your Appointments</h3>
         <ul>
-        console.log(appointments); // Check if _id is present in each appointment
+
 
         <ul>
   {appointments.map((appointment, index) => (

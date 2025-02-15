@@ -130,10 +130,12 @@ app.get("/api/getPatientId", authenticateToken, async (req, res) => {
     const patient = await PatientModel.findById(req.user.id);
     if (!patient) return res.status(404).json({ message: "User not found" });
 
-    // Returning the profile details, including medical history
+    // Returning the profile details, including medical history, height, and weight
     res.json({ 
       name: patient.name, 
-      medical_history: patient.medical_history 
+      medical_history: patient.medical_history,
+      height: patient.height,
+      weight: patient.weight
     });
   } catch (error) {
     res.status(500).json({ message: "Error fetching patient", error: error.message });
