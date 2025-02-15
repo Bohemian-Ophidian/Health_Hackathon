@@ -5,10 +5,11 @@ import (
 
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/api/handlers"
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/models"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // SetupRouter initializes the HTTP router
-func SetupRouter(prescriptionModel *models.PrescriptionModel, medicationModel *models.MedicationModel) *http.ServeMux {
+func SetupRouter(prescriptionModel *models.PrescriptionModel, medicationModel *models.MedicationModel, database *mongo.Database) *http.ServeMux {
 	mux := http.NewServeMux()
 
 	// Prescription Handlers (Handle both GET and POST)
@@ -37,8 +38,8 @@ func SetupRouter(prescriptionModel *models.PrescriptionModel, medicationModel *m
 		}
 	})
 
-	// Upload Route
-	uploadHandler := handlers.NewUploadHandler()                // Assuming an UploadHandler exists
+	// Upload Route (Pass the database to the UploadHandler)
+	uploadHandler := handlers.NewUploadHandler(medicationModel) // Pass medicationModel here
 	mux.HandleFunc("/upload", uploadHandler.UploadImageHandler) // POST image to the server
 
 	// Default route

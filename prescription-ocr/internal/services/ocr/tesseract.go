@@ -1,43 +1,47 @@
 package ocr
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
-	"path/filepath"
+
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/llama"
 )
 
-// ProcessImage extracts text using OCR
+// ProcessImage extracts text using OCR and refines it with LLaMA
 func ProcessImage(imagePath string) (string, error) {
-	// Get the absolute path of the image file
-	absPath, err := filepath.Abs(imagePath)
-	if err != nil {
-		log.Fatalf("Error getting absolute path: %v", err)
-		return "", fmt.Errorf("failed to get absolute path: %v", err)
-	}
-	log.Println("🛠️ Running Tesseract on:", absPath)
-
-	// Check if the image file exists before processing
-	if _, err := os.Stat(absPath); os.IsNotExist(err) {
-		return "", fmt.Errorf("file does not exist: %s", absPath)
+	// Check if file exists
+	if _, err := os.Stat(imagePath); os.IsNotExist(err) {
+		return "", fmt.Errorf("file does not exist: %s", imagePath)
 	}
 
-	// Command to run Tesseract, using the absolute path of the image
-	cmd := exec.Command("tesseract", absPath, "stdout", "--psm", "6", "--oem", "3")
+	log.Println("🛠️ Running Tesseract on:", imagePath)
 
-	// Run the command and capture both standard output and error
+	// Run Tesseract OCR
+	cmd := exec.Command("tesseract", imagePath, "stdout", "--psm", "6", "--oem", "3")
 	output, err := cmd.CombinedOutput()
 
-	// Error handling
 	if err != nil {
 		log.Printf("Tesseract Error: %s\n", string(output))
 		return "", fmt.Errorf("failed to process image: %s", string(output))
 	}
 
-	// Log the extracted text (optional)
-	log.Println("✅ Extracted Text: ", string(output))
+	extractedText := string(output)
+	log.Println("✅ Extracted Text:", extractedText)
 
-	// Return the extracted text
-	return string(output), nil
+	// Initialize LLaMA client
+	llamaClient := llama.NewClient("http://localhost:8080") // Use your actual LLaMA API URL
+
+	// Send extracted text to LLaMA for further processing
+	analysis, err := llamaClient.AnalyzeMedication(context.Background(), extractedText)
+	if err != nil {
+		log.Printf("LLaMA Processing Failed: %v", err)
+		return extractedText, nil // Return raw extracted text if LLaMA fails
+	}
+
+	log.Println("✅ Analyzed Medication:", analysis)
+	// You can use the analysis data as needed or return it
+	return fmt.Sprintf("Analysis Result: %v", analysis), nil
 }

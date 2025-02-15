@@ -69,7 +69,7 @@ def generate_map(hospitals):
 
 
 
-postal_code = "462001"  # postal code: Pune, India
+postal_code = "125001"
 hospitals = find_hospitals_osm(postal_code)
 
 if isinstance(hospitals, list):

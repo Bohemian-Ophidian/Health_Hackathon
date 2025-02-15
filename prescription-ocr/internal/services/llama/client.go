@@ -5,6 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"log"
 	"net/http"
 	"time"
 )
@@ -60,8 +62,15 @@ func (c *Client) AnalyzeText(ctx context.Context, text string) (*AnalysisRespons
 		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
+	// Log the full response body to help debug the LLaMA processing
+	responseBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+	log.Printf("LLaMA Response: %s", string(responseBody)) // Log the response from LLaMA
+
 	var result AnalysisResponse
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := json.Unmarshal(responseBody, &result); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
@@ -96,4 +105,26 @@ func (c *Client) AnalyzeMedication(ctx context.Context, medicationName string) (
 		"confidence":      response.Confidence,
 		"analyzed_at":     response.ProcessedAt,
 	}, nil
+}
+
+// Client method to extract medication names from OCR text
+func (c *Client) AnalyzeMedicationNames(text string) ([]string, error) {
+	// Use a prompt to extract medication names from the OCR text
+	prompt := fmt.Sprintf(`Extract all medication names from the following text:
+	%s`, text)
+
+	// Call the LLaMA analyze method
+	response, err := c.AnalyzeText(context.Background(), prompt)
+	if err != nil {
+		return nil, fmt.Errorf("failed to analyze text: %w", err)
+	}
+
+	// Extract medication names from LLaMA response (assuming it's part of the analysis)
+	// You may need to adjust based on LLaMA's response structure
+	var medications []string
+	for _, medication := range response.Analysis {
+		medications = append(medications, medication.(string)) // Assuming names are strings
+	}
+
+	return medications, nil
 }
