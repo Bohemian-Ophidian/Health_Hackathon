@@ -7,11 +7,10 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/llama"
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/common" // Import the common interface
 )
 
-// ProcessImage extracts text using OCR and refines it with LLaMA
-func ProcessImage(imagePath string) (string, error) {
+func ProcessImage(imagePath string, llamaClient common.LLaMAClient) (string, error) {
 	// Check if file exists
 	if _, err := os.Stat(imagePath); os.IsNotExist(err) {
 		return "", fmt.Errorf("file does not exist: %s", imagePath)
@@ -31,10 +30,7 @@ func ProcessImage(imagePath string) (string, error) {
 	extractedText := string(output)
 	log.Println("✅ Extracted Text:", extractedText)
 
-	// Initialize LLaMA client
-	llamaClient := llama.NewClient("http://localhost:8080") // Use your actual LLaMA API URL
-
-	// Send extracted text to LLaMA for further processing
+	// Send extracted text to LLaMA for further processing using the interface
 	analysis, err := llamaClient.AnalyzeMedication(context.Background(), extractedText)
 	if err != nil {
 		log.Printf("LLaMA Processing Failed: %v", err)

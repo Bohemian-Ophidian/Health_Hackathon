@@ -7,24 +7,17 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/common" // Importing the common interface
 )
 
+// Client implements the LLaMAClient interface
 type Client struct {
 	BaseURL    string
 	HTTPClient *http.Client
 }
 
-type AnalysisRequest struct {
-	Text string `json:"text"`
-}
-
-type AnalysisResponse struct {
-	Analysis    map[string]interface{} `json:"analysis"`
-	Confidence  float64                `json:"confidence"`
-	ProcessedAt time.Time              `json:"processed_at"`
-}
-
-// NewClient initializes the LLaMA client with the provided base URL
+// NewClient initializes a new LLaMA client
 func NewClient(baseURL string) *Client {
 	return &Client{
 		BaseURL: baseURL,
@@ -34,13 +27,13 @@ func NewClient(baseURL string) *Client {
 	}
 }
 
-// AnalyzeText sends the OCR text to the LLaMA API for analysis
-func (c *Client) AnalyzeText(ctx context.Context, text string) (*AnalysisResponse, error) {
+// AnalyzeText sends a POST request to the LLaMA API to analyze the provided text
+func (c *Client) AnalyzeText(ctx context.Context, text string) (*common.AnalysisResponse, error) {
 	if text == "" {
 		return nil, fmt.Errorf("text cannot be empty")
 	}
 
-	requestBody, err := json.Marshal(AnalysisRequest{Text: text})
+	requestBody, err := json.Marshal(common.AnalysisRequest{Text: text})
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
@@ -62,7 +55,7 @@ func (c *Client) AnalyzeText(ctx context.Context, text string) (*AnalysisRespons
 		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
-	var result AnalysisResponse
+	var result common.AnalysisResponse
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
@@ -74,31 +67,29 @@ func (c *Client) AnalyzeText(ctx context.Context, text string) (*AnalysisRespons
 	return &result, nil
 }
 
-// AnalyzeMedication analyzes medication names from extracted text
-func (c *Client) AnalyzeMedicationNames(text string) ([]string, error) {
+// AnalyzeMedicationNames extracts medication names from OCR text
+func (c *Client) AnalyzeMedicationNames(ctx context.Context, text string) ([]string, error) {
 	// Use a prompt to extract medication names from the OCR text
 	prompt := fmt.Sprintf(`Extract all medication names from the following text:
 	%s`, text)
 
 	// Call the LLaMA analyze method
-	response, err := c.AnalyzeText(context.Background(), prompt)
+	response, err := c.AnalyzeText(ctx, prompt)
 	if err != nil {
 		return nil, fmt.Errorf("failed to analyze text: %w", err)
 	}
 
-	// Extract medication names from LLaMA response (assuming it's part of the analysis)
-	// You may need to adjust based on LLaMA's response structure
+	// Extract medication names from LLaMA response (assuming names are strings)
 	var medications []string
 	for _, medication := range response.Analysis {
-		medications = append(medications, medication.(string)) // Assuming names are strings
+		medications = append(medications, medication.(string))
 	}
 
 	return medications, nil
 }
 
-// AnalyzeMedication fetches medication details and analysis using LLaMA
+// AnalyzeMedication analyzes a specific medication name for its details
 func (c *Client) AnalyzeMedication(ctx context.Context, medicationName string) (map[string]interface{}, error) {
-	// Structured prompt for medication analysis
 	prompt := fmt.Sprintf(`Analyze the following medication:
 	Name: %s
 	
@@ -109,7 +100,7 @@ func (c *Client) AnalyzeMedication(ctx context.Context, medicationName string) (
 	4. Interactions
 	5. Precautions`, medicationName)
 
-	// Call the LLaMA analyze method
+	// Send the prompt to the LLaMA API
 	response, err := c.AnalyzeText(ctx, prompt)
 	if err != nil {
 		return nil, fmt.Errorf("failed to analyze medication: %w", err)

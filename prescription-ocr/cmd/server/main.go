@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,7 +9,8 @@ import (
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/api"
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/config"
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/models"
-	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/llama" // Import the LLaMA client
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/common" // Import the common interface
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/llama"  // Import LLaMA client
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -56,31 +56,14 @@ func main() {
 	prescriptionModel := models.NewPrescriptionModel(database)
 	medicationModel := models.NewMedicationModel(database)
 
-	// Set up the router
-	router := api.SetupRouter(prescriptionModel, medicationModel, database) // Pass database here
-
-	// Initialize LLaMA client to interact with the LLaMA API
+	// Initialize LLaMA client
 	llamaClient := llama.NewClient(cfg.LLaMA.APIURL)
 
-	// Sample text for LLaMA analysis (you can replace this with actual extracted text)
-	sampleText := "Aspirin for headaches"
+	// Set up the router
+	router := api.SetupRouter(prescriptionModel, medicationModel, database)
 
-	// Retry LLaMA API call in case of failure (try 3 times)
-	for attempt := 1; attempt <= 3; attempt++ {
-		// Call the LLaMA API to analyze the text (you can replace this with extracted text)
-		analysis, err := llamaClient.AnalyzeMedication(context.Background(), sampleText)
-		if err != nil {
-			if attempt == 3 {
-				log.Fatalf("Failed to analyze medication with LLaMA after 3 attempts: %v", err)
-			}
-			log.Printf("Attempt %d: Failed to analyze medication, retrying... Error: %v", attempt, err)
-			continue
-		}
-
-		// Log the result of LLaMA analysis if successful
-		fmt.Printf("LLaMA Analysis Result: %+v\n", analysis)
-		break
-	}
+	// Initialize the UploadHandler with the LLaMA client
+	uploadHandler := handlers.NewUploadHandler(llamaClient)
 
 	// Start the server
 	port := os.Getenv("SERVER_PORT")
