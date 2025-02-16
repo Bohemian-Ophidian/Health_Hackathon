@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/common"
 )
 
 type Client struct {
@@ -24,6 +26,7 @@ type AnalysisResponse struct {
 	ProcessedAt time.Time              `json:"processed_at"`
 }
 
+// NewClient initializes a new LLaMA client
 func NewClient(baseURL string) *Client {
 	return &Client{
 		BaseURL: baseURL,
@@ -33,6 +36,28 @@ func NewClient(baseURL string) *Client {
 	}
 }
 
+// AnalyzeMedicationNames extracts medication names from the OCR text
+func (c *Client) AnalyzeMedicationNames(text string) ([]string, error) {
+	// Use a prompt to extract medication names from the OCR text
+	prompt := fmt.Sprintf("Extract all medication names from the following text:\n%s", text)
+
+	response, err := c.AnalyzeText(context.Background(), prompt)
+	if err != nil {
+		return nil, fmt.Errorf("failed to analyze text: %w", err)
+	}
+
+	// Extract medication names from LLaMA response (assuming they are in a list)
+	medications := []string{}
+	for _, medication := range response.Analysis {
+		if medName, ok := medication.(string); ok {
+			medications = append(medications, medName)
+		}
+	}
+
+	return medications, nil
+}
+
+// AnalyzeText sends text to LLaMA API for processing
 func (c *Client) AnalyzeText(ctx context.Context, text string) (*AnalysisResponse, error) {
 	if text == "" {
 		return nil, fmt.Errorf("text cannot be empty")
@@ -70,30 +95,4 @@ func (c *Client) AnalyzeText(ctx context.Context, text string) (*AnalysisRespons
 	}
 
 	return &result, nil
-}
-
-// ✅ **Fix: Add `AnalyzeMedication` to `client.go`**
-func (c *Client) AnalyzeMedication(ctx context.Context, medicationName string) (map[string]interface{}, error) {
-	// Structured prompt for medication analysis
-	prompt := fmt.Sprintf(`Analyze the following medication:
-	Name: %s
-	
-	Provide:
-	1. Common uses
-	2. Typical dosage
-	3. Side effects
-	4. Interactions
-	5. Precautions`, medicationName)
-
-	response, err := c.AnalyzeText(ctx, prompt)
-	if err != nil {
-		return nil, fmt.Errorf("failed to analyze medication: %w", err)
-	}
-
-	return map[string]interface{}{
-		"medication_name": medicationName,
-		"analysis":        response.Analysis,
-		"confidence":      response.Confidence,
-		"analyzed_at":     response.ProcessedAt,
-	}, nil
 }

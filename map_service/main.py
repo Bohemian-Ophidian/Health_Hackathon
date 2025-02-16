@@ -1,26 +1,29 @@
-from fastapi import FastAPI
-from typing import List
-from map_service import find_hospitals_osm
-from pydantic import BaseModel
+from flask import Flask, request, redirect, url_for
+import os
+from map_service import find_hospitals_osm, generate_map
 
-app = FastAPI()
+app = Flask(__name__)
 
-# Define the response model
-class Hospital(BaseModel):
-    name: str
-    latitude: float
-    longitude: float
+@app.route('/') 
+def index():
+    return '''
+        <form action="/submit" method="post">
+            Enter Postal Code: <input type="text" name="postal_code">
+            <input type="submit">
+        </form>
+    '''
 
-@app.get("/api/hospitals/{postal_code}", response_model=List[Hospital])
-def get_hospitals(postal_code: str):
-    """
-    API endpoint to get hospitals near a postal code.
-    """
+@app.route('/submit', methods=['POST'])
+def submit():
+    postal_code = request.form['postal_code']
     hospitals = find_hospitals_osm(postal_code)
-    if hospitals:
-        return hospitals
-    return []
+    if isinstance(hospitals, list):
+        generate_map(hospitals)
+    return redirect(url_for('map'))
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+@app.route('/map')
+def map():
+    return redirect("http://127.0.0.1:5500/map_service/map.html")
+
+if __name__ == '__main__':
+    app.run(debug=True)

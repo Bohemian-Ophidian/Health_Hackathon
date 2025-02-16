@@ -9,13 +9,14 @@ import (
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/api"
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/config"
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/models"
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/llama"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func main() {
-	// Load .env file (if present)
+	// Load .env file
 	if err := godotenv.Load(); err != nil {
 		log.Println("⚠ No .env file found, using system environment variables")
 	}
@@ -51,11 +52,18 @@ func main() {
 	}
 
 	// Initialize models
+<<<<<<< HEAD
+=======
+	database := client.Database(cfg.Database.DBName)
+>>>>>>> 6b5b2b5ce4434bd8b80f655908dba12693114995
 	prescriptionModel := models.NewPrescriptionModel(database)
 	medicationModel := models.NewMedicationModel(database)
 
-	// Set up the router
-	router := api.SetupRouter(prescriptionModel, medicationModel)
+	// Initialize LLaMA Client
+	llamaClient := llama.NewClient(cfg.LLaMA.APIURL)
+
+	// Setup router
+	router := api.SetupRouter(prescriptionModel, medicationModel, database, llamaClient)
 
 	// You can now access LLaMA API information through the cfg variable
 	// For example, log the LLaMA API URL
@@ -65,11 +73,6 @@ func main() {
 
 	// Start server
 	port := os.Getenv("SERVER_PORT")
-	if port == "" {
-		port = "8080"
-	}
 	fmt.Printf("🚀 Starting server on port %s\n", port)
-	if err := http.ListenAndServe(":"+port, router); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
-	}
+	log.Fatal(http.ListenAndServe(":"+port, router))
 }

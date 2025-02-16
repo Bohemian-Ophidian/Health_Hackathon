@@ -1,52 +1,54 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import { LatLngExpression } from 'leaflet'; 
-import 'leaflet/dist/leaflet.css';
-
-interface Hospital {
-  name: string;
-  latitude: number;
-  longitude: number;
-}
+import React, { useEffect, useState } from 'react';
 
 const HealthCenters = () => {
-  const [hospitals, setHospitals] = useState<Hospital[]>([]);
-  const [postalCode, setPostalCode] = useState<string>('411001'); // Example postal code for Pune
+  const [mapUrl, setMapUrl] = useState<string>('http://127.0.0.1:5500/map_service/map.html');
 
-  useEffect(() => {
-    // Fetch the hospitals data from FastAPI
-    axios
-      .get(`http://localhost:8000/api/hospitals/${postalCode}`)
-      .then((response) => setHospitals(response.data))
-      .catch((error) => console.error('Error fetching hospitals:', error));
-  }, [postalCode]);
+const [postalCode, setPostalCode] = useState<string>('');
 
-  const defaultCenter: LatLngExpression = [20.5937, 78.9629]; // Default center (India)
+const handlePostalCodeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const value = event.target.value;
+  if (/^\d{0,6}$/.test(value)) {
+    setPostalCode(value);
+  }
+};
+
+const handleSearch = () => {
+  // Logic to update mapUrl based on postalCode
+  // Example: setMapUrl(`http://example.com/map?postalCode=${postalCode}`);
+};
+
+useEffect(() => {
+  handleSearch();
+}, [postalCode]);
+
+return (
+  <div>
+    <input
+      type="text"
+      value={postalCode}
+      onChange={handlePostalCodeChange}
+      placeholder="Enter 6-digit postal code"
+      maxLength={6}
+    />
+    <iframe 
+      src={mapUrl} 
+      title="Health Centers Map" 
+      width="100%" 
+      height="850vh" 
+      style={{ border: 'none' }} 
+    />
+  </div>
+);
 
   return (
     <div>
-      <h1>Nearby Health Centers</h1>
-      <div style={{ marginBottom: '10px' }}>
-        <label htmlFor="postalCode">Enter Postal Code: </label>
-        <input
-          type="text"
-          id="postalCode"
-          value={postalCode}
-          onChange={(e) => setPostalCode(e.target.value)}
-        />
-      </div>
-
-      <MapContainer center={defaultCenter} zoom={5} style={{ height: '560px', width: '100%' }}>
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        {hospitals.map((hospital) => (
-          <Marker key={hospital.name} position={[hospital.latitude, hospital.longitude]}>
-            <Popup>{hospital.name}</Popup>
-          </Marker>
-        ))}
-      </MapContainer>
+      <iframe 
+        src={mapUrl} 
+        title="Health Centers Map" 
+        width="100%" 
+        height="850vh" 
+        style={{ border: 'none' }} 
+      />
     </div>
   );
 };

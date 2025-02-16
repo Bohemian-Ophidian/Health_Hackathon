@@ -68,15 +68,19 @@ def generate_map(hospitals):
     print(f"✅ Map saved as {map_file}. Open this file in your browser to view the locations.")
 
 
-# Example Usage
-postal_code = "411001"  # Example: Pune, India
-hospitals = find_hospitals_osm(postal_code)
 
-# Generate map if hospitals are found
-if isinstance(hospitals, list):
-    generate_map(hospitals)
-    for hospital in hospitals:
-        print(f"🏥 Name: {hospital['name']}\n🌍 Location: {hospital['latitude']}, {hospital['longitude']}\n")
-else:
-    print(hospitals)
+
+
+if __name__ == "__main__":
+# 125001, 462001, 110001, 560001, 600001, 700001, 800001, 900001
+    postal_code = "462001"  # Example: New Delhi postal code
+
+    hospitals = find_hospitals_osm(postal_code)
+
+    if isinstance(hospitals, list):
+        generate_map(hospitals)
+        for hospital in hospitals:
+            print(f"🏥 Name: {hospital['name']}\n🌍 Location: {hospital['latitude']}, {hospital['longitude']}\n")
+    else:
+        print(hospitals)
 
