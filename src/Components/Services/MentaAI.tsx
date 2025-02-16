@@ -38,7 +38,6 @@ const MentaAI: React.FC = () => {
   
     fetchPatientId();
   }, []);
-  
 
   const handleSend = async () => {
     if (!input.trim() && !image) {
@@ -74,7 +73,7 @@ const MentaAI: React.FC = () => {
       const data = await response.json();
       setMessages((prevMessages) => [
         ...prevMessages,
-        { user: 'MentaAI', text: data.bot_response, timestamp: new Date().toLocaleTimeString() },
+        { user: 'MentaAI', text: data.bot_response || 'No response from AI', timestamp: new Date().toLocaleTimeString() },
       ]);
     } catch (error) {
       console.error('Error:', error);
@@ -106,7 +105,7 @@ const MentaAI: React.FC = () => {
           <div key={index} className={`mb-3 p-3 rounded-lg ${message.user === 'You' ? 'bg-green-100 self-end' : 'bg-gray-200 self-start'}`}>
             <strong>{message.user}:</strong>
             <span className="text-xs text-gray-500"> {message.timestamp}</span>
-            <div dangerouslySetInnerHTML={{ __html: marked(message.text) }} />
+            <div dangerouslySetInnerHTML={{ __html: marked(message.text || "No response generated") }} />
           </div>
         ))}
         {loading && <p className="text-gray-500 italic">MentaAI is typing...</p>}

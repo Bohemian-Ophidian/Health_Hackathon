@@ -75,6 +75,51 @@ model = genai.GenerativeModel(
     # system_instruction="",
     system_instruction="Your role is to listen to the user, understand his symptoms, tailor your response according to it, and you must be straightforward and concise about it, also provide quick and simple solutions like first aid or other remedies before asking the patient to consult a doctor.If an image is attached,  respond based on the image provided correctly.",
 )
+#API for uploading images
+@app.post("/chat/uploadImage")
+async def upload_image(patient_id: str = Form(...), user_message: str = Form(""), image: UploadFile = File(None)):
+    try:
+        # Default to no image
+        image_data = None
+        
+        if image:
+            # Read the uploaded image file
+            image_data = await image.read()
+        
+        # Prepare a response based on the user message and image (if any)
+        # Validate patient existence
+        patient = patients_collection.find_one({"_id": ObjectId(patient_id)})
+        if not patient:
+            raise HTTPException(status_code=404, detail="Patient not found")
+
+        # Format patient details into context
+        patient_context = (
+            f"Patient Details:\n"
+            f"- Name: {patient['name']}\n"
+            f"- Age: {patient['age']}\n"
+            f"- Sex: {patient['sex']}\n"
+            f"- Medical History: {patient['medical_history']}\n\n"
+            f"Now respond to the following message from the patient:"
+        )
+
+        # Combine patient context with user message and image presence
+        full_prompt = f"{patient_context}\n\nUser: {user_message}\n" + ("Image attached." if image_data else "")
+        
+        # Generate response using Gemini model
+        response = model.generate_content(full_prompt)
+        bot_response = response.text.strip() if hasattr(response, "text") else "No response generated."
+        
+        # Here you might want to store or process the image as per your use case
+        # For now, just returning the response and mentioning image presence
+        return {
+            "patient_id": patient_id,
+            "user_message": user_message,
+            "bot_response": bot_response,
+            "image_uploaded": bool(image_data),
+        }
+    
+    except Exception as e:
+        return {"error": str(e)}
 
 # ✅ API for Chatbot Interaction
 @app.post("/chat/chatWithBot")
@@ -121,48 +166,3 @@ def chat_with_bot(chat_request: ChatRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Chatbot error: {str(e)}")
-
-
-@app.post("/chat/uploadImage")
-async def upload_image(chat_request: ChatRequest, patient_id: str = Form(...), user_message: str = Form(""), image: UploadFile = File(None)):
-    try:
-        # Default to no image
-        image_data = None
-        patient_id = chat_request.patient_id
-        user_message = chat_request.user_message
-
-        # Validate patient existence
-        patient = patients_collection.find_one({"_id": ObjectId(patient_id)})
-        if not patient:
-            raise HTTPException(status_code=404, detail="Patient not found")
-        if image:
-            # Read the uploaded image file
-            image_data = await image.read()
-        
-        patient_context = (
-            f"Patient Details:\n"
-            f"- Name: {patient['name']}\n"
-            f"- Age: {patient['age']}\n"
-            f"- Sex: {patient['sex']}\n"
-            f"- Medical History: {patient['medical_history']}\n\n"
-            f"Now respond to the following message from the patient:"
-        )
-
-        # Prepare a response based on the user message and image (if any)
-        full_prompt = f" {patient_context}\nUser Message: {user_message}\n" + ("Image attached." if image_data else "")
-        
-        # Generate response using Gemini model
-        response = model.generate_content(full_prompt)
-        bot_response = response.text.strip() if hasattr(response, "text") else "No response generated."
-        
-        # Here you might want to store or process the image as per your use case
-        # For now, just returning the response and mentioning image presence
-        return {
-            "patient_id": patient_id,
-            "user_message": user_message,
-            "bot_response": bot_response,
-            "image_uploaded": bool(image_data),
-        }
-    
-    except Exception as e:
-        return {"error": str(e)}
