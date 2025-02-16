@@ -2,7 +2,6 @@ package models
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -93,32 +92,3 @@ func (m *MedicationModel) GetAllMedications(ctx context.Context) ([]Medication, 
 
 	return medications, nil
 }
-<<<<<<< HEAD
-=======
-
-// MedicationDetails holds the details of a medication
-type MedicationDetails struct {
-	ID            primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	Name          string             `bson:"name" json:"name"`
-	Alternatives  []string           `bson:"alternatives" json:"alternatives"`
-	SideEffects   []string           `bson:"side_effects" json:"side_effects"`
-	Uses          []string           `bson:"uses" json:"uses"`
-	ChemicalClass string             `bson:"chemical_class" json:"chemical_class"`
-}
-
-// GetMedicationDetails retrieves the details of a medication by its name
-func (m *MedicationModel) GetMedicationDetails(ctx context.Context, medicationName string) (*MedicationDetails, error) {
-	var medicationDetails MedicationDetails
-
-	// Find the medication by its name
-	err := m.Collection.FindOne(ctx, bson.M{"name": medicationName}).Decode(&medicationDetails)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, fmt.Errorf("medication not found")
-		}
-		return nil, fmt.Errorf("failed to retrieve medication details: %v", err)
-	}
-
-	return &medicationDetails, nil
-}
->>>>>>> 6b5b2b5ce4434bd8b80f655908dba12693114995
