@@ -93,6 +93,8 @@ func (m *MedicationModel) GetAllMedications(ctx context.Context) ([]Medication, 
 
 	return medications, nil
 }
+<<<<<<< HEAD
+=======
 
 // MedicationDetails holds the details of a medication
 type MedicationDetails struct {
@@ -119,3 +121,4 @@ func (m *MedicationModel) GetMedicationDetails(ctx context.Context, medicationNa
 
 	return &medicationDetails, nil
 }
+>>>>>>> 6b5b2b5ce4434bd8b80f655908dba12693114995

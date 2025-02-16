@@ -39,8 +39,23 @@ func main() {
 	}
 	defer client.Disconnect(nil)
 
+	// Verify the connection to healthDB
+	dbName := os.Getenv("DB_NAME")
+	if dbName == "" {
+		log.Fatal("DB_NAME environment variable is not set")
+	}
+	database := client.Database(dbName)
+	if database == nil {
+		log.Fatalf("Failed to access database: %s", dbName)
+	} else {
+		fmt.Printf("Successfully connected to MongoDB database: %s\n", dbName)
+	}
+
 	// Initialize models
+<<<<<<< HEAD
+=======
 	database := client.Database(cfg.Database.DBName)
+>>>>>>> 6b5b2b5ce4434bd8b80f655908dba12693114995
 	prescriptionModel := models.NewPrescriptionModel(database)
 	medicationModel := models.NewMedicationModel(database)
 
@@ -49,6 +64,12 @@ func main() {
 
 	// Setup router
 	router := api.SetupRouter(prescriptionModel, medicationModel, database, llamaClient)
+
+	// You can now access LLaMA API information through the cfg variable
+	// For example, log the LLaMA API URL
+	fmt.Println("LLaMA API URL:", cfg.LLaMA.APIURL)
+
+	// Call the LLaMA API for any necessary processing here
 
 	// Start server
 	port := os.Getenv("SERVER_PORT")
