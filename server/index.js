@@ -261,3 +261,30 @@ app.get("/api/getPatientId", authenticateToken, async (req, res) => {
     res.status(500).json({ message: "Error fetching patient", error: error.message });
   }
 });
+
+app.put("/api/updateProfile", authenticateToken, async (req, res) => {
+  try {
+    const { name, height, weight, medical_history } = req.body;
+
+    // Ensure all necessary fields are provided
+    if (!name || !height || !weight || !medical_history) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    // Update the patient profile
+    const patient = await PatientModel.findByIdAndUpdate(
+      req.user.id,
+      { name, height, weight, medical_history },
+      { new: true } // Return the updated patient
+    );
+
+    if (!patient) {
+      return res.status(404).json({ message: "Patient not found" });
+    }
+
+    res.status(200).json(patient);
+  } catch (err) {
+    res.status(500).json({ message: "Error updating profile", error: err.message });
+  }
+});
+

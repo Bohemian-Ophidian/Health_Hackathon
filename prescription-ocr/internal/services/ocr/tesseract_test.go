@@ -1,9 +1,9 @@
-package ocr_test
+package ocr
 
 import (
 	"testing"
 
-	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/ocr" // Replace `your_project` with your actual module name
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/ocr"
 )
 
 func TestProcessImage(t *testing.T) {
