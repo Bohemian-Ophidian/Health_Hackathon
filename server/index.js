@@ -8,18 +8,25 @@ import { PatientModel, ChatHistoryModel, DoctorModel } from "./models.js";
 import multer from "multer";
 import { v4 as uuidv4 } from "uuid";
 import path from "path";
+import fs from "fs"; // Add filesystem module
 
 dotenv.config();
 
 const app = express();
 const PORT = 3001;
 
+// Create uploads directory if it doesn't exist
+const uploadDir = path.join(process.cwd(), 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
 const MONGO_URI = process.env.MONGO_URI;
 const JWT_SECRET = process.env.JWT_SECRET; 
 
 app.use(cors());
 app.use(express.json());
-app.use("/uploads", express.static("uploads")); // Serve uploaded images
+app.use("/uploads", express.static(uploadDir)); // Serve uploaded images
 
 mongoose
   .connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -31,7 +38,7 @@ mongoose
 
 // ✅ Multer Configuration for File Uploads
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads/"),
+  destination: (req, file, cb) => cb(null, uploadDir),
   filename: (req, file, cb) => cb(null, uuidv4() + "-" + Date.now() + path.extname(file.originalname)),
 });
 
@@ -64,7 +71,10 @@ const authenticateToken = (req, res, next) => {
   if (!token) return res.status(401).json({ message: "Access Denied" });
 
   jwt.verify(token, JWT_SECRET, (err, decoded) => {
-    if (err) return res.status(403).json({ message: "Invalid Token" });
+    if (err) {
+      console.error("Token verification failed:", err);  // Add logging here
+      return res.status(403).json({ message: "Invalid Token" });
+    }
     req.user = decoded;
     next();
   });
@@ -183,7 +193,7 @@ app.get("/api/getPatientId", authenticateToken, async (req, res) => {
 
     // Include the patient ID in the response
     res.json({ 
-      patient_id: patient._id, 
+      patientId: patient._id, 
       name: patient.name, 
       medical_history: patient.medical_history,
       height: patient.height,
@@ -282,18 +292,6 @@ app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
 });
 
-
-app.get("/api/getPatientId", authenticateToken, async (req, res) => {
-  try {
-    const patient = await PatientModel.findById(req.user.id);
-    if (!patient) return res.status(404).json({ message: "User not found" });
-    // Convert the ObjectId to a string (optional, as JSON.stringify does this automatically)
-    res.json({ patientId: patient._id.toString() });
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching patient", error: error.message });
-  }
-});
-
 app.put("/api/updateProfile", authenticateToken, async (req, res) => {
   try {
     const { name, height, weight, medical_history } = req.body;
@@ -325,12 +323,20 @@ app.post("/api/upload-photo", upload.single("photo"), async (req, res) => {
     const patient = await PatientModel.findById(req.user.id);
     if (!patient) return res.status(404).json({ message: "User not found" });
 
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
     patient.photo = req.file.filename;
     await patient.save();
 
     res.status(201).json({ message: "Photo uploaded successfully", filename: req.file.filename });
   } catch (error) {
     console.error("Upload Error:", error);
-    res.status(500).json({ message: "Error uploading photo", error: error.message });
+    res.status(500).json({ 
+      message: "Error uploading photo", 
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
