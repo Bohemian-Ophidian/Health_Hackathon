@@ -1,9 +1,10 @@
 from flask import Flask, request, redirect, url_for
 import os
+from map_service import find_hospitals_osm, generate_map
 
 app = Flask(__name__)
 
-@app.route('/')
+@app.route('/') 
 def index():
     return '''
         <form action="/submit" method="post">

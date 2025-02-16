@@ -5,13 +5,45 @@ import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { PatientModel, ChatHistoryModel, DoctorModel } from "./models.js";
+import multer from "multer";
+import { v4 as uuidv4 } from "uuid";
+import path from "path";
 
 dotenv.config();
-const MONGO_URI = process.env.MONGO_URI;
-const JWT_SECRET = process.env.JWT_SECRET; 
 
 const app = express();
 const PORT = 3001;
+
+const MONGO_URI = process.env.MONGO_URI;
+const JWT_SECRET = process.env.JWT_SECRET; 
+
+app.use(cors());
+app.use(express.json());
+app.use("/uploads", express.static("uploads")); // Serve uploaded images
+
+mongoose
+  .connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log("✅ Connected to MongoDB: healthDB"))
+  .catch(err => {
+    console.error("❌ MongoDB connection error:", err);
+    process.exit(1);
+  });
+
+// ✅ Multer Configuration for File Uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, "uploads/"),
+  filename: (req, file, cb) => cb(null, uuidv4() + "-" + Date.now() + path.extname(file.originalname)),
+});
+
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
+  allowedTypes.includes(file.mimetype) ? cb(null, true) : cb(new Error("Invalid file type"));
+};
+
+const upload = multer({ storage, fileFilter, limits: { fileSize: 1024 * 1024 } }); // 1MB limit
+
+
+dotenv.config();
 
 app.use(express.json());
 app.use(cors());
@@ -288,3 +320,17 @@ app.put("/api/updateProfile", authenticateToken, async (req, res) => {
   }
 });
 
+app.post("/api/upload-photo", upload.single("photo"), async (req, res) => {
+  try {
+    const patient = await PatientModel.findById(req.user.id);
+    if (!patient) return res.status(404).json({ message: "User not found" });
+
+    patient.photo = req.file.filename;
+    await patient.save();
+
+    res.status(201).json({ message: "Photo uploaded successfully", filename: req.file.filename });
+  } catch (error) {
+    console.error("Upload Error:", error);
+    res.status(500).json({ message: "Error uploading photo", error: error.message });
+  }
+});

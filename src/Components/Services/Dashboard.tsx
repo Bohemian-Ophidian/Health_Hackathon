@@ -2,9 +2,14 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 const Dashboard: React.FC = () => {
+  const [tip, setTip] = useState<string>('');
+  const token = localStorage.getItem("token");
   const [medicines, setMedicines] = useState<any[]>([]);
   const [appointments, setAppointments] = useState<any[]>([]);
   const [profile, setProfile] = useState<any | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string>("");
   const [newMedicine, setNewMedicine] = useState({
     name: "",
     description: "",
@@ -18,9 +23,6 @@ const Dashboard: React.FC = () => {
     weight: "",
     medical_history: [],
   });
-  const [tip, setTip] = useState<string>('');
-
-  const token = localStorage.getItem("token");
 
   // List of small tips
   const tips = [
@@ -58,6 +60,73 @@ const Dashboard: React.FC = () => {
     'Try a new type of cuisine!',
     'Cook a meal with fresh, whole ingredients!',
   ];
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await axios.get("http://localhost:3001/api/getPatientId", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setProfile(response.data);
+
+        // Fetch Image if exists
+        if (response.data.photo) {
+          setImageUrl(`http://localhost:3001/uploads/${response.data.photo}`);
+        }
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      }
+    };
+
+    fetchProfile();
+  }, [token]);
+
+  // Handle File Selection
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0]);
+    }
+  };
+
+  // Upload Image
+  const handleUpload = async () => {
+    if (!selectedFile) {
+      setUploadError("Please select a file to upload.");
+      return;
+    }
+
+    const fileSizeInKB = selectedFile.size / 1024;
+    if (fileSizeInKB < 20 || fileSizeInKB > 1024) {
+      setUploadError("File size must be between 20KB and 1MB.");
+      return;
+    }
+
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
+    if (!allowedTypes.includes(selectedFile.type)) {
+      setUploadError("Only PNG, JPG, or JPEG files are allowed.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("photo", selectedFile);
+
+    try {
+      const response = await axios.post("http://localhost:3001/api/upload-photo", formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      setImageUrl(`http://localhost:3001/uploads/${response.data.filename}`);
+      setUploadError("");
+      alert("Profile picture uploaded successfully!");
+    } catch (error) {
+      console.error("Upload error:", error);
+      setUploadError("Error uploading file. Please try again.");
+    }
+  };
+
+  
 
   // Fetch data on login or token change
   useEffect(() => {
@@ -369,34 +438,20 @@ const handleMedicalHistoryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 
       {/* Graph Section */}
       <div className="bg-white shadow-lg rounded-lg p-6">
-        <h2 className="text-xl font-semibold">Graph</h2>
-        <svg viewBox="0 0 400 220" width="100%" height="auto">
-          <rect width="100%" height="220" fill="white" />
-          <line x1="50" y1="0" x2="50" y2="200" stroke="black" strokeWidth="2" />
-          <line x1="50" y1="200" x2="400" y2="200" stroke="black" strokeWidth="2" />
-          <polyline
-            fill="none"
-            stroke="rgba(75, 192, 192, 1)"
-            strokeWidth="3"
-            points={[10, 20, 15, 30, 25, 10]
-              .map((value, index) => `${index * 50 + 50},${200 - value * 5}`)
-              .join(" ")}
-          />
-          <g className="axis x-axis">
-            {["Jan", "Feb", "Mar", "Apr", "May", "Jun"].map((label, index) => (
-              <text key={index} x={index * 50 + 50} y="215" textAnchor="middle" fontSize="12">
-                {label}
-              </text>
-            ))}
-          </g>
-          <g className="axis y-axis">
-            {[0, 10, 20, 30, 40].map((value, index) => (
-              <text key={index} x="40" y={200 - value * 5} textAnchor="end" fontSize="12" dominantBaseline="middle">
-                {value}
-              </text>
-            ))}
-          </g>
-        </svg>
+      <div className="mt-4">
+              {imageUrl ? (
+                <img src={imageUrl} alt="Profile" className="w-32 h-32 object-cover rounded-full mx-auto" />
+              ) : (
+                <p className="text-gray-500">No profile picture uploaded.</p>
+              )}
+            </div>
+
+            <input type="file" accept=".png, .jpg, .jpeg" onChange={handleFileChange} className="mt-4 border p-2 w-full" />
+            <button onClick={handleUpload} className="bg-blue-500 text-white px-4 py-2 rounded-lg mt-4 w-full">
+              Upload Profile Picture
+            </button>
+
+            {uploadError && <p className="text-red-500 mt-2">{uploadError}</p>}
       </div>
     </div>
   );

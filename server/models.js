@@ -39,7 +39,11 @@ const PatientSchema = new mongoose.Schema({
     description: String,
     dosage: String,
     time: String
-  }]
+  }],
+  
+  photo: {
+    type: String
+},
 }, { timestamps: true });
 
 
