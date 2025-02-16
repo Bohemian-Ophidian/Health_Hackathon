@@ -9,6 +9,7 @@ import (
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/api"
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/config"
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/models"
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/llama" // Import LLaMA client
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -54,14 +55,11 @@ func main() {
 	prescriptionModel := models.NewPrescriptionModel(database)
 	medicationModel := models.NewMedicationModel(database)
 
+	// Initialize LLaMA client
+	llamaClient := llama.NewClient(cfg.LLaMA.APIURL) // Ensure correct initialization with your API URL
+
 	// Set up the router
-	router := api.SetupRouter(prescriptionModel, medicationModel)
-
-	// You can now access LLaMA API information through the cfg variable
-	// For example, log the LLaMA API URL
-	fmt.Println("LLaMA API URL:", cfg.LLaMA.APIURL)
-
-	// Call the LLaMA API for any necessary processing here
+	router := api.SetupRouter(prescriptionModel, medicationModel, database, llamaClient) // Pass llamaClient here
 
 	// Start server
 	port := os.Getenv("SERVER_PORT")

@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -91,4 +92,20 @@ func (m *MedicationModel) GetAllMedications(ctx context.Context) ([]Medication, 
 	}
 
 	return medications, nil
+}
+
+// GetMedicationDetails retrieves the details of a medication by its name
+func (m *MedicationModel) GetMedicationDetails(ctx context.Context, medicationName string) (*Medication, error) {
+	var medication Medication
+
+	// Find the medication by its name
+	err := m.Collection.FindOne(ctx, bson.M{"name": medicationName}).Decode(&medication)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("medication not found")
+		}
+		return nil, fmt.Errorf("failed to retrieve medication details: %v", err)
+	}
+
+	return &medication, nil
 }

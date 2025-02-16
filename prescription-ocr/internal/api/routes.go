@@ -5,10 +5,12 @@ import (
 
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/api/handlers"
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/models"
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/llama"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // SetupRouter initializes the HTTP router
-func SetupRouter(prescriptionModel *models.PrescriptionModel, medicationModel *models.MedicationModel) *http.ServeMux {
+func SetupRouter(prescriptionModel *models.PrescriptionModel, medicationModel *models.MedicationModel, database *mongo.Database, llamaClient *llama.Client) *http.ServeMux {
 	mux := http.NewServeMux()
 
 	// Prescription Handlers (Handle both GET and POST)
@@ -37,9 +39,9 @@ func SetupRouter(prescriptionModel *models.PrescriptionModel, medicationModel *m
 		}
 	})
 
-	// Upload Route
-	uploadHandler := handlers.NewUploadHandler()                // Assuming an UploadHandler exists
-	mux.HandleFunc("/upload", uploadHandler.UploadImageHandler) // POST image to the server
+	// Upload Route - Pass the LLaMA Client and MedicationModel
+	uploadHandler := handlers.NewUploadHandler(llamaClient, medicationModel)
+	mux.HandleFunc("/upload", uploadHandler.UploadImageHandler)
 
 	// Default route
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
