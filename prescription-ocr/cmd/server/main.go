@@ -9,14 +9,14 @@ import (
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/api"
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/config"
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/models"
-	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/llama" // Import LLaMA client
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/ollama" // Import LLaMA client
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func main() {
-	// Load .env file (if present)
+	// Load .env file
 	if err := godotenv.Load(); err != nil {
 		log.Println("⚠ No .env file found, using system environment variables")
 	}
@@ -45,21 +45,16 @@ func main() {
 		log.Fatal("DB_NAME environment variable is not set")
 	}
 	database := client.Database(dbName)
-	if database == nil {
-		log.Fatalf("Failed to access database: %s", dbName)
-	} else {
-		fmt.Printf("Successfully connected to MongoDB database: %s\n", dbName)
-	}
 
 	// Initialize models
 	prescriptionModel := models.NewPrescriptionModel(database)
 	medicationModel := models.NewMedicationModel(database)
 
 	// Initialize LLaMA client
-	llamaClient := llama.NewClient(cfg.LLaMA.APIURL) // Ensure correct initialization with your API URL
+	llamaClient := llama.NewClient(cfg.LLaMA.APIURL, os.Getenv("LLAMA_API_KEY"))
 
 	// Set up the router
-	router := api.SetupRouter(prescriptionModel, medicationModel, database, llamaClient) // Pass llamaClient here
+	router := api.SetupRouter(prescriptionModel, medicationModel, database, llamaClient)
 
 	// Start server
 	port := os.Getenv("SERVER_PORT")
