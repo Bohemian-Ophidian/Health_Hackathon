@@ -2,14 +2,15 @@ package handlers
 
 import (
 	"encoding/json"
-	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/ocr"
-	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/ollama"
 	"net/http"
 	"os"
+
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/ocr"
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/ollama"
 )
 
 func HandleUpload(w http.ResponseWriter, r *http.Request) {
-	// Handle file upload
+	// Handle file upload and save it
 	file, _, err := r.FormFile("file")
 	if err != nil {
 		http.Error(w, "Failed to upload file", http.StatusBadRequest)
@@ -17,7 +18,7 @@ func HandleUpload(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	// Save the file to disk
+	// Save the uploaded file
 	outFile, err := os.Create("uploads/prescription.jpg")
 	if err != nil {
 		http.Error(w, "Failed to save file", http.StatusInternalServerError)
@@ -31,7 +32,7 @@ func HandleUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Respond with success
+	// Send a response that the file was uploaded
 	w.Write([]byte("File uploaded successfully"))
 }
 
