@@ -318,25 +318,36 @@ app.put("/api/updateProfile", authenticateToken, async (req, res) => {
   }
 });
 
-app.post("/api/upload-photo", upload.single("photo"), async (req, res) => {
+app.post("/api/upload-reports", authenticateToken, upload.array("reports", 5), async (req, res) => {
   try {
     const patient = await PatientModel.findById(req.user.id);
     if (!patient) return res.status(404).json({ message: "User not found" });
 
-    if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded" });
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ message: "No files uploaded" });
     }
 
-    patient.photo = req.file.filename;
+    // Save filenames in an array
+    const fileNames = req.files.map((file) => file.filename);
+    patient.reports = [...(patient.reports || []), ...fileNames];
     await patient.save();
 
-    res.status(201).json({ message: "Photo uploaded successfully", filename: req.file.filename });
+    res.status(201).json({ message: "Reports uploaded successfully", filenames: fileNames });
   } catch (error) {
     console.error("Upload Error:", error);
-    res.status(500).json({ 
-      message: "Error uploading photo", 
-      error: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    });
+    res.status(500).json({ message: "Error uploading reports" });
+  }
+});
+
+app.get("/api/get-reports", authenticateToken, async (req, res) => {
+  try {
+    const patient = await PatientModel.findById(req.user.id);
+    if (!patient || !patient.reports || patient.reports.length === 0) {
+      return res.status(404).json({ message: "No reports found" });
+    }
+    res.json({ filenames: patient.reports });
+  } catch (error) {
+    console.error("Fetch Error:", error);
+    res.status(500).json({ message: "Error fetching reports" });
   }
 });
