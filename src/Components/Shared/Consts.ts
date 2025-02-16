@@ -233,20 +233,20 @@ export const FeedbackData = {
   feedbacks: [
     {
       img: user1,
-      name: 'Anand Vyas',
-      job: 'Businessman',
+      name: 'Divya Kriplani ',
+      job: 'Works at EY',
       desc: 'My experience with this hospital has been great. I highly recommend their services to anyone in need of quility healthcare. they truly prioritize patients care!',
     },
     {
       img: user2,
-      name: 'Saksham Kriplani',
-      job: 'Engineer',
+      name: 'Mayank Kumar',
+      job: 'Works at Honeybee',
       desc: 'The healthcare professionals were top-natch. they were knowledgeable, attentive, and took the time to answer all of my questions and address my concerns',
     },
     {
       img: user3,
-      name: 'Bhavna Rathi',
-      job: 'Teacher',
+      name: 'Jhalak Sehgal',
+      job: 'Phd Scholar',
       desc: "One thing that stood out to me was the efficiency of the service, i didn't have to wait long for my appointment, and the entire process was hassle-free experience",
     },
   ],
