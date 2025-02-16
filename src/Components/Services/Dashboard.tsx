@@ -88,43 +88,49 @@ const Dashboard: React.FC = () => {
   };
 
   // Upload Image
-  const handleUpload = async () => {
-    if (!selectedFile) {
-      setUploadError("Please select a file to upload.");
-      return;
-    }
+  // Frontend: Profile Photo Upload
+const handleUpload = async () => {
+  if (!selectedFile) {
+    setUploadError("Please select a file to upload.");
+    return;
+  }
 
-    const fileSizeInKB = selectedFile.size / 1024;
-    if (fileSizeInKB < 20 || fileSizeInKB > 1024) {
-      setUploadError("File size must be between 20KB and 1MB.");
-      return;
-    }
+  const fileSizeInKB = selectedFile.size / 1024;
+  if (fileSizeInKB < 20 || fileSizeInKB > 1024) {
+    setUploadError("File size must be between 20KB and 1MB.");
+    return;
+  }
 
-    const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
-    if (!allowedTypes.includes(selectedFile.type)) {
-      setUploadError("Only PNG, JPG, or JPEG files are allowed.");
-      return;
-    }
+  const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
+  if (!allowedTypes.includes(selectedFile.type)) {
+    setUploadError("Only PNG, JPG, or JPEG files are allowed.");
+    return;
+  }
 
-    const formData = new FormData();
-    formData.append("photo", selectedFile);
+  const formData = new FormData();
+  formData.append("photo", selectedFile); // Ensure you are appending the file to FormData
 
-    try {
-      const response = await axios.post("http://localhost:3001/api/upload-photo", formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      });
+  try {
+    const response = await axios.post("http://localhost:3001/api/upload-photo", formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "multipart/form-data",
+      },
+    });
 
+    if (response.data && response.data.filename) {
       setImageUrl(`http://localhost:3001/uploads/${response.data.filename}`);
       setUploadError("");
       alert("Profile picture uploaded successfully!");
-    } catch (error) {
-      console.error("Upload error:", error);
-      setUploadError("Error uploading file. Please try again.");
+    } else {
+      throw new Error("No filename in response");
     }
-  };
+  } catch (error) {
+    console.error("Upload error:", error);
+    setUploadError("Error uploading file. Please try again.");
+  }
+};
+
 
   
 
@@ -436,23 +442,24 @@ const handleMedicalHistoryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 
 
 
-      {/* Graph Section */}
+      {/* Report Section */}
       <div className="bg-white shadow-lg rounded-lg p-6">
-      <div className="mt-4">
-              {imageUrl ? (
-                <img src={imageUrl} alt="Profile" className="w-32 h-32 object-cover rounded-full mx-auto" />
-              ) : (
-                <p className="text-gray-500">No profile picture uploaded.</p>
-              )}
-            </div>
+              <input
+          type="file"
+          accept=".png, .jpg, .jpeg"
+          onChange={handleFileChange}
+          className="mt-4 border p-2 w-full"
+        />
 
-            <input type="file" accept=".png, .jpg, .jpeg" onChange={handleFileChange} className="mt-4 border p-2 w-full" />
-            <button onClick={handleUpload} className="bg-blue-500 text-white px-4 py-2 rounded-lg mt-4 w-full">
-              Upload Profile Picture
-            </button>
-
-            {uploadError && <p className="text-red-500 mt-2">{uploadError}</p>}
-      </div>
+        <button
+          onClick={handleUpload}
+          className="bg-blue-500 text-white px-4 py-2 rounded-lg mt-4 w-full"
+        >
+            Upload Reports
+          </button>
+  
+          {uploadError && <p className="text-red-500 mt-2">{uploadError}</p>}
+        </div>
     </div>
   );
 };
