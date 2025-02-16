@@ -2,47 +2,60 @@ package handlers
 
 import (
 	"encoding/json"
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/ocr"
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/ollama"
 	"net/http"
-
-	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/models"
+	"os"
 )
 
-// PrescriptionHandler is the struct for handling prescriptions
-type PrescriptionHandler struct {
-	Model *models.PrescriptionModel
-}
-
-// NewPrescriptionHandler creates a new PrescriptionHandler
-func NewPrescriptionHandler(model *models.PrescriptionModel) *PrescriptionHandler {
-	return &PrescriptionHandler{Model: model}
-}
-
-// GetAllPrescriptionsHandler retrieves all prescriptions
-func (h *PrescriptionHandler) GetAllPrescriptionsHandler(w http.ResponseWriter, r *http.Request) {
-	prescriptions, err := h.Model.GetAllPrescriptions(r.Context())
+func HandleUpload(w http.ResponseWriter, r *http.Request) {
+	// Handle file upload
+	file, _, err := r.FormFile("file")
 	if err != nil {
-		http.Error(w, "Failed to retrieve prescriptions", http.StatusInternalServerError)
+		http.Error(w, "Failed to upload file", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	// Save the file to disk
+	outFile, err := os.Create("uploads/prescription.jpg")
+	if err != nil {
+		http.Error(w, "Failed to save file", http.StatusInternalServerError)
+		return
+	}
+	defer outFile.Close()
+
+	_, err = outFile.ReadFrom(file)
+	if err != nil {
+		http.Error(w, "Failed to read file", http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(prescriptions)
+	// Respond with success
+	w.Write([]byte("File uploaded successfully"))
 }
 
-// AddPrescription handles adding a prescription
-func (h *PrescriptionHandler) AddPrescription(w http.ResponseWriter, r *http.Request) {
-	var prescription models.Prescription
-	if err := json.NewDecoder(r.Body).Decode(&prescription); err != nil {
+func ProcessPrescription(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		PrePrompt string `json:"pre_prompt"`
+	}
+
+	// Decode the input JSON containing the pre-prompt
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		http.Error(w, "Invalid input", http.StatusBadRequest)
 		return
 	}
 
-	err := h.Model.AddPrescription(r.Context(), &prescription)
-	if err != nil {
-		http.Error(w, "Failed to add prescription", http.StatusInternalServerError)
-		return
-	}
+	// Extract text from the prescription image
+	text := ocr.ExtractTextFromImage("uploads/prescription.jpg")
 
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Prescription added successfully"))
+	// Combine pre-prompt with extracted text for Ollama processing
+	combinedText := input.PrePrompt + " " + text
+
+	// Process the combined text using Ollama
+	medicationInfo := ollama.ProcessPrescription(combinedText)
+
+	// Respond with the medication information
+	response := map[string]string{"medicationInfo": medicationInfo}
+	json.NewEncoder(w).Encode(response)
 }
