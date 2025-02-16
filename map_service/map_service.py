@@ -69,17 +69,18 @@ def generate_map(hospitals):
 
 
 
-<<<<<<< HEAD
-postal_code = "125001"
-=======
-postal_code = "462001"  # postal code: Bhopal.
->>>>>>> 9e2c0f7c039e70181fbcf793d4822f4554bd0c05
-hospitals = find_hospitals_osm(postal_code)
 
-if isinstance(hospitals, list):
-    generate_map(hospitals)
-    for hospital in hospitals:
-        print(f"🏥 Name: {hospital['name']}\n🌍 Location: {hospital['latitude']}, {hospital['longitude']}\n")
-else:
-    print(hospitals)
+
+if __name__ == "__main__":
+# 125001, 462001, 110001, 560001, 600001, 700001, 800001, 900001
+    postal_code = "462001"  # Example: New Delhi postal code
+
+    hospitals = find_hospitals_osm(postal_code)
+
+    if isinstance(hospitals, list):
+        generate_map(hospitals)
+        for hospital in hospitals:
+            print(f"🏥 Name: {hospital['name']}\n🌍 Location: {hospital['latitude']}, {hospital['longitude']}\n")
+    else:
+        print(hospitals)
 
