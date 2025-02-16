@@ -10,7 +10,7 @@ const Dashboard: React.FC = () => {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [profile, setProfile] = useState<any | null>(null);
 
-  // Report upload states
+  // Reports upload states
   const [selectedReports, setSelectedReports] = useState<File[]>([]);
   const [reportUrls, setReportUrls] = useState<string[]>([]);
   const [uploadError, setUploadError] = useState<string>("");
@@ -69,7 +69,7 @@ const Dashboard: React.FC = () => {
     "Cook a meal with fresh, whole ingredients!",
   ];
 
-  // Fetch profile (and profile photo, if exists)
+  // Fetch profile data
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -108,12 +108,11 @@ const Dashboard: React.FC = () => {
     fetchData();
   }, [token]);
 
-  // Fetch already uploaded reports
+  // Fetch previously uploaded reports
   useEffect(() => {
     const fetchReports = async () => {
       try {
         if (token) {
-          
           const response = await axios.get("http://localhost:3001/api/get-reports", {
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -132,14 +131,14 @@ const Dashboard: React.FC = () => {
     fetchReports();
   }, [token]);
 
-  // Random tip on mount
+  // Set a random tip on mount
   useEffect(() => {
     const randomTip = tips[Math.floor(Math.random() * tips.length)];
     setTip(randomTip);
   }, []);
 
   // ------------------
-  // Profile Editing
+  // Profile Editing Handlers
   // ------------------
   const toggleEditMode = () => {
     setIsEditing(!isEditing);
@@ -153,21 +152,21 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
+  const handleProfileInputChange = (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
     setEditableProfile({
       ...editableProfile,
       [field]: e.target.value,
     });
   };
 
-  const handleMedicalHistoryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleProfileMedicalHistoryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEditableProfile({
       ...editableProfile,
       medical_history: e.target.value,
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const response = await axios.put(
@@ -235,12 +234,11 @@ const Dashboard: React.FC = () => {
   ));
 
   // ------------------
-  // Report Upload Handlers
+  // Reports Upload Handlers
   // ------------------
   const handleReportsFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      const filesArray = Array.from(e.target.files);
-      setSelectedReports(filesArray);
+      setSelectedReports(Array.from(e.target.files));
     }
   };
 
@@ -296,10 +294,10 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto p-6">
-      {/* Tip of the Day */}
-      <div className="bg-white shadow-lg rounded-lg p-6">
+      {/* Tip of the Day Section */}
+      <div className="bg-white shadow-lg rounded-lg p-6 flex flex-col">
         <h2 className="text-xl font-semibold">Tip of the Day</h2>
-        <p className="text-gray-600 mt-2 text-xl">{tip}</p>
+        <p className="text-xl flex justify-center mt-[20%] items-center text-green-600">{tip}</p>
       </div>
 
       {/* Profile Section */}
@@ -308,34 +306,34 @@ const Dashboard: React.FC = () => {
         {profile ? (
           <>
             {isEditing ? (
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={handleProfileSubmit}>
                 <div className="space-y-2">
                   <label className="block text-gray-600">Name:</label>
                   <input
                     type="text"
                     value={editableProfile.name}
-                    onChange={(e) => handleInputChange(e, "name")}
+                    onChange={(e) => handleProfileInputChange(e, "name")}
                     className="border p-2 w-full rounded"
                   />
                   <label className="block text-gray-600 mt-2">Height (in cm):</label>
                   <input
                     type="number"
                     value={editableProfile.height}
-                    onChange={(e) => handleInputChange(e, "height")}
+                    onChange={(e) => handleProfileInputChange(e, "height")}
                     className="border p-2 w-full rounded"
                   />
                   <label className="block text-gray-600 mt-2">Weight (in kg):</label>
                   <input
                     type="number"
                     value={editableProfile.weight}
-                    onChange={(e) => handleInputChange(e, "weight")}
+                    onChange={(e) => handleProfileInputChange(e, "weight")}
                     className="border p-2 w-full rounded"
                   />
                   <label className="block text-gray-600 mt-2">Medical History:</label>
                   <input
                     type="text"
                     value={editableProfile.medical_history}
-                    onChange={handleMedicalHistoryChange}
+                    onChange={handleProfileMedicalHistoryChange}
                     className="border p-2 w-full rounded"
                     placeholder="Enter medical history"
                   />
@@ -376,12 +374,12 @@ const Dashboard: React.FC = () => {
         )}
       </div>
 
-      {/* Appointments */}
+      {/* Appointment Section */}
       <div className="bg-white shadow-lg rounded-lg p-6">
-        <h2 className="text-xl font-semibold">Appointments</h2>
+        <h2 className="text-xl font-semibold mb-5">Appointments</h2>
         <ul>
           {appointments.map((appointment, index) => (
-            <li key={index} className="mb-2 flex justify-between items-center">
+            <li key={index} className="mb-2 flex justify-between items-center text-red-500">
               <span>
                 {`${appointment.doctorName}: ${new Date(
                   appointment.date
@@ -392,7 +390,7 @@ const Dashboard: React.FC = () => {
         </ul>
       </div>
 
-      {/* Medicines */}
+      {/* Medicines Section */}
       <div className="bg-white shadow-lg rounded-lg p-6">
         <h2 className="text-xl font-semibold">Medicines</h2>
         <div className="space-y-2 mt-4">
@@ -433,7 +431,6 @@ const Dashboard: React.FC = () => {
             <option value="">Select Time</option>
             {timeOptions}
           </select>
-
           <button
             onClick={addMedicine}
             className="bg-blue-500 text-white px-4 py-2 rounded-lg w-full"
@@ -441,7 +438,6 @@ const Dashboard: React.FC = () => {
             Add Medicine
           </button>
         </div>
-
         <h3 className="mt-6 text-lg font-semibold">Your Medicines</h3>
         <ul className="mt-2 text-gray-600">
           {medicines.length > 0 ? (
@@ -503,6 +499,7 @@ const Dashboard: React.FC = () => {
         >
           Upload Reports
         </button>
+        {uploadError && <p className="text-red-500 mt-2">{uploadError}</p>}
         {reportUrls.length > 0 && (
           <div className="mt-4">
             <h3 className="text-lg font-semibold">Uploaded Reports</h3>
@@ -518,7 +515,6 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
         )}
-        {uploadError && <p className="text-red-500 mt-2">{uploadError}</p>}
       </div>
     </div>
   );
