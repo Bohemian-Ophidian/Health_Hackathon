@@ -186,6 +186,102 @@ const handleMedicalHistoryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto p-6">
+      {/* Tip of the Day Section */}
+      <div className="bg-white shadow-lg rounded-lg p-6">
+        <h2 className="text-xl font-semibold">Tip of the Day</h2>
+        <p className="text-gray-600 mt-2 text-xl">{tip}</p>
+      </div>
+
+        {/* Profile Section */}
+  <div className="bg-white shadow-lg rounded-lg p-6">
+    <h2 className="text-xl font-semibold">Profile</h2>
+    {profile ? (
+      <>
+        {isEditing ? (
+          <form onSubmit={handleSubmit}>
+            <div className="space-y-2">
+              <label className="block text-gray-600">Name:</label>
+              <input
+                type="text"
+                value={editableProfile.name}
+                onChange={(e) => handleInputChange(e, "name")}
+                className="border p-2 w-full rounded"
+              />
+              <label className="block text-gray-600 mt-2">Height (in cm):</label>
+              <input
+                type="number"
+                value={editableProfile.height}
+                onChange={(e) => handleInputChange(e, "height")}
+                className="border p-2 w-full rounded"
+              />
+              <label className="block text-gray-600 mt-2">Weight (in kg):</label>
+              <input
+                type="number"
+                value={editableProfile.weight}
+                onChange={(e) => handleInputChange(e, "weight")}
+                className="border p-2 w-full rounded"
+              />
+              <label className="block text-gray-600 mt-2">Medical History:</label>
+              <input
+                type="text"
+                value={editableProfile.medical_history}
+                onChange={handleMedicalHistoryChange}  // Directly handle medical history change
+                className="border p-2 w-full rounded"
+                placeholder="Enter medical history"
+              />
+              <button
+                type="submit"
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg mt-4 w-full"
+              >
+                Save Changes
+              </button>
+            </div>
+          </form>
+        ) : (
+          <>
+            <p className="text-gray-600 mt-2">
+              <strong>Name:</strong> {profile.name}
+            </p>
+            <p className="text-gray-600 mt-2">
+              <strong>Height:</strong> {profile.height} cm
+            </p>
+            <p className="text-gray-600 mt-2">
+              <strong>Weight:</strong> {profile.weight} kg
+            </p>
+            <p className="text-gray-600 mt-2">
+              <strong>Medical History:</strong>
+            </p>
+            <p className="text-gray-600">{profile.medical_history}</p>  {/* Display the medical history */}
+            <button
+              onClick={toggleEditMode}
+              className="bg-blue-500 text-white px-4 py-2 rounded-lg mt-4"
+            >
+              Edit Profile
+            </button>
+          </>
+        )}
+      </>
+    ) : (
+      <p>Loading profile...</p>
+    )}
+  </div>
+
+        {/* Appointment Section */}
+        <div className="bg-white shadow-lg rounded-lg p-6">
+        <h2 className="text-xl font-semibold">Appointments</h2>
+        <ul>
+          {appointments.map((appointment, index) => (
+            <li key={index} className="mb-2 flex justify-between items-center">
+              <span>
+                {`${appointment.doctorName}: ${new Date(appointment.date).toLocaleDateString()} at ${appointment.time}`}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+
+
       {/* Medicines Section */}
       <div className="bg-white shadow-lg rounded-lg p-6">
         <h2 className="text-xl font-semibold">Medicines</h2>
@@ -247,11 +343,6 @@ const handleMedicalHistoryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         </ul>
       </div>
 
-      {/* Tip of the Day Section */}
-      <div className="bg-white shadow-lg rounded-lg p-6">
-        <h2 className="text-xl font-semibold">Tip of the Day</h2>
-        <p className="text-gray-600 mt-2 text-xl">{tip}</p>
-      </div>
 
       {/* Schedule Section */}
       <div className="bg-white shadow-lg rounded-lg p-6">
@@ -265,7 +356,7 @@ const handleMedicalHistoryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
           ]
             .sort((a, b) =>
               new Date(`1970/01/01 ${a.time}`).getTime() - new Date(`1970/01/01 ${b.time}`).getTime()
-            )
+            ) 
             .map((task, index) => (
               <li key={index} className="border p-2 rounded mt-2">
                 <strong>{task.name}</strong> - {task.time}
@@ -274,93 +365,7 @@ const handleMedicalHistoryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         </ul>
       </div>
 
-      {/* Appointment Section */}
-      <div className="bg-white shadow-lg rounded-lg p-6">
-        <h2 className="text-xl font-semibold">Appointments</h2>
-        <ul>
-          {appointments.map((appointment, index) => (
-            <li key={index} className="mb-2 flex justify-between items-center">
-              <span>
-                {`${appointment.doctorName}: ${new Date(appointment.date).toLocaleDateString()} at ${appointment.time}`}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </div>
 
-      {/* Profile Section */}
-<div className="bg-white shadow-lg rounded-lg p-6">
-  <h2 className="text-xl font-semibold">Profile</h2>
-  {profile ? (
-    <>
-      {isEditing ? (
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-2">
-            <label className="block text-gray-600">Name:</label>
-            <input
-              type="text"
-              value={editableProfile.name}
-              onChange={(e) => handleInputChange(e, "name")}
-              className="border p-2 w-full rounded"
-            />
-            <label className="block text-gray-600 mt-2">Height (in cm):</label>
-            <input
-              type="number"
-              value={editableProfile.height}
-              onChange={(e) => handleInputChange(e, "height")}
-              className="border p-2 w-full rounded"
-            />
-            <label className="block text-gray-600 mt-2">Weight (in kg):</label>
-            <input
-              type="number"
-              value={editableProfile.weight}
-              onChange={(e) => handleInputChange(e, "weight")}
-              className="border p-2 w-full rounded"
-            />
-            <label className="block text-gray-600 mt-2">Medical History:</label>
-            <input
-              type="text"
-              value={editableProfile.medical_history}
-              onChange={handleMedicalHistoryChange}  // Directly handle medical history change
-              className="border p-2 w-full rounded"
-              placeholder="Enter medical history"
-            />
-            <button
-              type="submit"
-              className="bg-blue-500 text-white px-4 py-2 rounded-lg mt-4 w-full"
-            >
-              Save Changes
-            </button>
-          </div>
-        </form>
-      ) : (
-        <>
-          <p className="text-gray-600 mt-2">
-            <strong>Name:</strong> {profile.name}
-          </p>
-          <p className="text-gray-600 mt-2">
-            <strong>Height:</strong> {profile.height} cm
-          </p>
-          <p className="text-gray-600 mt-2">
-            <strong>Weight:</strong> {profile.weight} kg
-          </p>
-          <p className="text-gray-600 mt-2">
-            <strong>Medical History:</strong>
-          </p>
-          <p className="text-gray-600">{profile.medical_history}</p>  {/* Display the medical history */}
-          <button
-            onClick={toggleEditMode}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg mt-4"
-          >
-            Edit Profile
-          </button>
-        </>
-      )}
-    </>
-  ) : (
-    <p>Loading profile...</p>
-  )}
-</div>
 
       {/* Graph Section */}
       <div className="bg-white shadow-lg rounded-lg p-6">

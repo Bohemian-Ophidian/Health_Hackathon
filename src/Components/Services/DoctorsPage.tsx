@@ -211,36 +211,33 @@ const DoctorsPage: React.FC = () => {
       <div className="w-3/4 p-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {doctors.map((doctor) => (
-            <div key={doctor._id} className="border rounded-lg p-4 shadow-md hover:shadow-lg">
-              <img
-                src={doctor.imageUrl}
-                alt={doctor.name}
-                className="w-32 h-32 object-cover rounded-full mx-auto"
-              />
-              <h2 className="font-semibold text-xl text-center mt-2">{doctor.name}</h2>
-              <p className="text-center text-gray-500">{doctor.speciality}</p>
-              <p className="text-center text-gray-500">Experience: {doctor.experience}</p>
-              <div className="text-center mt-4">
-                {appointments.some((app) => app.doctorId === doctor._id) ? (
-                  <button
-                    onClick={() => handleCancelAppointment(doctor._id)}
-                    className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-700"
-                  >
-                    Cancel Appointment
-                  </button>
-                ) : (
-                    <button
-                    onClick={() => {
-                      setSelectedDoctor(doctor);
-                      setShowCalendar(true);
-                    }}
-                    className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700 mt-auto"
-                    >
-                    Book an Appointment
-                    </button>
-                )}
-              </div>
-            </div>
+          <div key={doctor._id} className="border rounded-lg p-4 shadow-md flex flex-col">
+          <img
+            src={doctor.imageUrl}
+            alt={doctor.name}
+            className="w-32 h-32 object-cover rounded-full mx-auto"
+          />
+          <h2 className="font-semibold text-xl text-center mt-2">{doctor.name}</h2>
+          <p className="text-center text-gray-500">{doctor.speciality}</p>
+          <p className="text-center text-gray-500">Experience: {doctor.experience}</p>
+          
+          {/* This div will take available space and push the button down */}
+          <div className="flex-grow"></div>
+        
+          <div className="text-center mt-4">
+
+              <button
+                onClick={() => {
+                  setSelectedDoctor(doctor);
+                  setShowCalendar(true);
+                }}
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700 mt-auto"
+              >
+                Book an Appointment
+              </button>
+          </div>
+        </div>
+        
           ))}
         </div>
       </div>
