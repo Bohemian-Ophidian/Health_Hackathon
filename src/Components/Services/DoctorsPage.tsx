@@ -160,6 +160,13 @@ const DoctorsPage: React.FC = () => {
     </option>
   ));
 
+  const filteredDoctors = doctors.filter((doctor) => {
+    return (
+      (filters.speciality === "" || doctor.speciality.toLowerCase().includes(filters.speciality.toLowerCase())) &&
+      (filters.experience === "" || doctor.experience.toLowerCase().includes(filters.experience.toLowerCase()))
+    );
+  });
+
   if (isLoading) {
     return <div className="flex justify-center items-center h-screen">Loading...</div>;
   }
@@ -185,59 +192,51 @@ const DoctorsPage: React.FC = () => {
         />
         <h3 className="text-xl font-semibold mt-8 mb-4">Your Appointments</h3>
         <ul>
-
-
-        <ul>
-  {appointments.map((appointment, index) => (
-    <li key={index} className="mb-2 flex justify-between items-center">
-      <span>
-        {`${appointment.doctorName}: ${appointment.date.toLocaleDateString()} at ${appointment.time}`}
-      </span>
-      <button
-        onClick={() => appointment._id && handleCancelAppointment(appointment._id)} // Use _id here
-        className="bg-red-500 text-white px-2 py-1 rounded ml-2 hover:bg-red-700"
-      >
-        Cancel
-      </button>
-    </li>
-  ))}
-</ul>
-
-
+          {appointments.map((appointment, index) => (
+            <li key={index} className="mb-2 flex justify-between items-center">
+              <span>
+                {`${appointment.doctorName}: ${appointment.date.toLocaleDateString()} at ${appointment.time}`}
+              </span>
+              <button
+                onClick={() => appointment._id && handleCancelAppointment(appointment._id)} // Use _id here
+                className="bg-red-500 text-white px-2 py-1 rounded ml-2 hover:bg-red-700"
+              >
+                Cancel
+              </button>
+            </li>
+          ))}
         </ul>
       </div>
 
       {/* Doctors Grid */}
       <div className="w-3/4 p-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {doctors.map((doctor) => (
-          <div key={doctor._id} className="border rounded-lg p-4 shadow-md flex flex-col">
-          <img
-            src={doctor.imageUrl}
-            alt={doctor.name}
-            className="w-32 h-32 object-cover rounded-full mx-auto"
-          />
-          <h2 className="font-semibold text-xl text-center mt-2">{doctor.name}</h2>
-          <p className="text-center text-gray-500">{doctor.speciality}</p>
-          <p className="text-center text-gray-500">Experience: {doctor.experience}</p>
-          
-          {/* This div will take available space and push the button down */}
-          <div className="flex-grow"></div>
-        
-          <div className="text-center mt-4">
-
-              <button
-                onClick={() => {
-                  setSelectedDoctor(doctor);
-                  setShowCalendar(true);
-                }}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700 mt-auto"
-              >
-                Book an Appointment
-              </button>
-          </div>
-        </div>
-        
+          {filteredDoctors.map((doctor) => (
+            <div key={doctor._id} className="border rounded-lg p-4 shadow-md flex flex-col">
+              <img
+                src={doctor.imageUrl}
+                alt={doctor.name}
+                className="w-32 h-32 object-cover rounded-full mx-auto"
+              />
+              <h2 className="font-semibold text-xl text-center mt-2">{doctor.name}</h2>
+              <p className="text-center text-gray-500">{doctor.speciality}</p>
+              <p className="text-center text-gray-500">Experience: {doctor.experience}</p>
+              
+              {/* This div will take available space and push the button down */}
+              <div className="flex-grow"></div>
+            
+              <div className="text-center mt-4">
+                <button
+                  onClick={() => {
+                    setSelectedDoctor(doctor);
+                    setShowCalendar(true);
+                  }}
+                  className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700 mt-auto"
+                >
+                  Book an Appointment
+                </button>
+              </div>
+            </div>
           ))}
         </div>
       </div>

@@ -9,9 +9,9 @@ const Home = () => {
 
   return (
     <SectionWrapper id="home">
-      <div className="flex flex-col-reverse md:flex-row items-center justify-between gap-10 text-center md:text-left">
+      <div className="flex flex-col-reverse md:flex-row items-center justify-between gap-10 text-center md:text-left ">
         <div className="tracking-wider md:tracking-normal max-w-xs lg:max-w-xl">
-          <h1 className="lg:text-6xl text-4xl font-bold">
+          <h1 className="lg:text-6xl text-4xl font-bold text-green-500">
             Your Wellness, Our Commitment Health Comes First
           </h1>
           <p className="text-lg md:text-base lg:text-xl my-10">
