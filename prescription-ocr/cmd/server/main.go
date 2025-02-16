@@ -9,15 +9,14 @@ import (
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/api"
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/config"
 	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/models"
-	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/common" // Import the common interface
-	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/llama"  // Import LLaMA client
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/llama"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func main() {
-	// Load .env file (if present)
+	// Load .env file
 	if err := godotenv.Load(); err != nil {
 		log.Println("⚠ No .env file found, using system environment variables")
 	}
@@ -40,38 +39,19 @@ func main() {
 	}
 	defer client.Disconnect(nil)
 
-	// Verify the connection to healthDB
-	dbName := os.Getenv("DB_NAME")
-	if dbName == "" {
-		log.Fatal("DB_NAME environment variable is not set")
-	}
-	database := client.Database(dbName)
-	if database == nil {
-		log.Fatalf("Failed to access database: %s", dbName)
-	} else {
-		fmt.Printf("Successfully connected to MongoDB database: %s\n", dbName)
-	}
-
 	// Initialize models
+	database := client.Database(cfg.Database.DBName)
 	prescriptionModel := models.NewPrescriptionModel(database)
 	medicationModel := models.NewMedicationModel(database)
 
-	// Initialize LLaMA client
+	// Initialize LLaMA Client
 	llamaClient := llama.NewClient(cfg.LLaMA.APIURL)
 
-	// Set up the router
-	router := api.SetupRouter(prescriptionModel, medicationModel, database)
+	// Setup router
+	router := api.SetupRouter(prescriptionModel, medicationModel, database, llamaClient)
 
-	// Initialize the UploadHandler with the LLaMA client
-	uploadHandler := handlers.NewUploadHandler(llamaClient)
-
-	// Start the server
+	// Start server
 	port := os.Getenv("SERVER_PORT")
-	if port == "" {
-		port = "8080"
-	}
 	fmt.Printf("🚀 Starting server on port %s\n", port)
-	if err := http.ListenAndServe(":"+port, router); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
-	}
+	log.Fatal(http.ListenAndServe(":"+port, router))
 }

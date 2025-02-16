@@ -8,13 +8,22 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/common" // Importing the common interface
+	"github.com/Aanandvyas/Health_Hackathon/prescription-ocr/internal/services/common"
 )
 
-// Client implements the LLaMAClient interface
 type Client struct {
 	BaseURL    string
 	HTTPClient *http.Client
+}
+
+type AnalysisRequest struct {
+	Text string `json:"text"`
+}
+
+type AnalysisResponse struct {
+	Analysis    map[string]interface{} `json:"analysis"`
+	Confidence  float64                `json:"confidence"`
+	ProcessedAt time.Time              `json:"processed_at"`
 }
 
 // NewClient initializes a new LLaMA client
@@ -27,13 +36,34 @@ func NewClient(baseURL string) *Client {
 	}
 }
 
-// AnalyzeText sends a POST request to the LLaMA API to analyze the provided text
-func (c *Client) AnalyzeText(ctx context.Context, text string) (*common.AnalysisResponse, error) {
+// AnalyzeMedicationNames extracts medication names from the OCR text
+func (c *Client) AnalyzeMedicationNames(text string) ([]string, error) {
+	// Use a prompt to extract medication names from the OCR text
+	prompt := fmt.Sprintf("Extract all medication names from the following text:\n%s", text)
+
+	response, err := c.AnalyzeText(context.Background(), prompt)
+	if err != nil {
+		return nil, fmt.Errorf("failed to analyze text: %w", err)
+	}
+
+	// Extract medication names from LLaMA response (assuming they are in a list)
+	medications := []string{}
+	for _, medication := range response.Analysis {
+		if medName, ok := medication.(string); ok {
+			medications = append(medications, medName)
+		}
+	}
+
+	return medications, nil
+}
+
+// AnalyzeText sends text to LLaMA API for processing
+func (c *Client) AnalyzeText(ctx context.Context, text string) (*AnalysisResponse, error) {
 	if text == "" {
 		return nil, fmt.Errorf("text cannot be empty")
 	}
 
-	requestBody, err := json.Marshal(common.AnalysisRequest{Text: text})
+	requestBody, err := json.Marshal(AnalysisRequest{Text: text})
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
@@ -55,7 +85,7 @@ func (c *Client) AnalyzeText(ctx context.Context, text string) (*common.Analysis
 		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
-	var result common.AnalysisResponse
+	var result AnalysisResponse
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
@@ -65,51 +95,4 @@ func (c *Client) AnalyzeText(ctx context.Context, text string) (*common.Analysis
 	}
 
 	return &result, nil
-}
-
-// AnalyzeMedicationNames extracts medication names from OCR text
-func (c *Client) AnalyzeMedicationNames(ctx context.Context, text string) ([]string, error) {
-	// Use a prompt to extract medication names from the OCR text
-	prompt := fmt.Sprintf(`Extract all medication names from the following text:
-	%s`, text)
-
-	// Call the LLaMA analyze method
-	response, err := c.AnalyzeText(ctx, prompt)
-	if err != nil {
-		return nil, fmt.Errorf("failed to analyze text: %w", err)
-	}
-
-	// Extract medication names from LLaMA response (assuming names are strings)
-	var medications []string
-	for _, medication := range response.Analysis {
-		medications = append(medications, medication.(string))
-	}
-
-	return medications, nil
-}
-
-// AnalyzeMedication analyzes a specific medication name for its details
-func (c *Client) AnalyzeMedication(ctx context.Context, medicationName string) (map[string]interface{}, error) {
-	prompt := fmt.Sprintf(`Analyze the following medication:
-	Name: %s
-	
-	Provide:
-	1. Common uses
-	2. Typical dosage
-	3. Side effects
-	4. Interactions
-	5. Precautions`, medicationName)
-
-	// Send the prompt to the LLaMA API
-	response, err := c.AnalyzeText(ctx, prompt)
-	if err != nil {
-		return nil, fmt.Errorf("failed to analyze medication: %w", err)
-	}
-
-	return map[string]interface{}{
-		"medication_name": medicationName,
-		"analysis":        response.Analysis,
-		"confidence":      response.Confidence,
-		"analyzed_at":     response.ProcessedAt,
-	}, nil
 }

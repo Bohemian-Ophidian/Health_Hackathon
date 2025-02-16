@@ -1,9 +1,10 @@
-package llama
+package common
 
-import "context"
+import (
+	"context"
+)
 
-// LLaMAClient defines the interface for interacting with LLaMA
+// LLaMAClient is an interface for analyzing medication names
 type LLaMAClient interface {
-	AnalyzeMedicationNames(ctx context.Context, text string) ([]string, error)
-	AnalyzeMedication(ctx context.Context, medicationName string) (map[string]interface{}, error)
+	AnalyzeMedicationNames(text string) ([]string, error)
 }
