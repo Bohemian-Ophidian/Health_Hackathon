@@ -25,7 +25,7 @@ const Login = () => {
           // Store user data AND token
           localStorage.setItem("user", JSON.stringify(res.data.user));
           localStorage.setItem("token", res.data.token); // 🚀 Add this line
-          navigate("/Health-Mentá");
+          navigate("/Health-Menta");
           window.location.reload();
         } else {
           setError(res.data.message || "Login failed. Please check your credentials.");
