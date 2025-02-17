@@ -26,11 +26,11 @@ export const links = ['Home'];
 
 export const descNums = [
   {
-    num: '25+',
+    num: '20+',
     text: 'Expert Doctors',
   },
   {
-    num: '200+',
+    num: '100+',
     text: 'Happy Patients',
   },
   {
@@ -38,11 +38,11 @@ export const descNums = [
     text: 'Service',
   },
   {
-    num: '90%',
+    num: '97%',
     text: 'Accurate Bot',
   },
   {
-    num: '3',
+    num: '5+',
     text: 'Different services',
   },
 ];

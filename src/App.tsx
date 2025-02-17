@@ -15,12 +15,12 @@ function App() {
       <div className="text-[#1d4d85] app min-w-[280px] min-h-screen bg-background">
          <Header/>
         <Routes>
-          <Route path="/Health-Mentá/login" element={<Login />} />
-          <Route path="/Health-Mentá/register" element={<Register />} />
-          <Route path="/Health-Mentá" element={<HomePage />} />
-          <Route path="/Health-Mentá/Services" element={<ServicePage/>} />
-          <Route path="/Health-Mentá/About" element={<Landing />} />
-          <Route path="/Health-Mentá/Doctors" element={<DoctorsPage />} />
+          <Route path="/Health-Menta/login" element={<Login />} />
+          <Route path="/Health-Menta/register" element={<Register />} />
+          <Route path="/Health-Menta" element={<HomePage />} />
+          <Route path="/Health-Menta/Services" element={<ServicePage/>} />
+          <Route path="/Health-Menta/About" element={<Landing />} />
+          <Route path="/Health-Menta/Doctors" element={<DoctorsPage />} />
         </Routes>
       </div>
     </Router>

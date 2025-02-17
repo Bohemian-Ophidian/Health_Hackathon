@@ -117,6 +117,10 @@ const Dashboard: React.FC = () => {
             headers: { Authorization: `Bearer ${token}` },
           });
           if (response.data && response.data.filenames) {
+            // If you want to include the patient's ID in the URL,
+            // and if your backend stores files in a subfolder named after the ID,
+            // you could modify the URL like so:
+            // const urls = response.data.filenames.map((file: string) => `http://localhost:3001/uploads/${profile?._id}/${file}`);
             const urls = response.data.filenames.map(
               (file: string) => `http://localhost:3001/uploads/${file}`
             );

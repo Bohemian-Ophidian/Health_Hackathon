@@ -32,7 +32,7 @@ const Register = () => {
         if (res.data === "User already exists") {
           setError("User with this mobile number already exists."); // Specific error for existing user
         } else {
-          navigate("/Health-Mentá/"); // Navigate on success
+          navigate("/Health-Menta/"); // Navigate on success
         }
       })
       .catch((err) => {

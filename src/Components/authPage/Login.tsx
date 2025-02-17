@@ -79,7 +79,7 @@ const Login = () => {
           </button>
           <div className="mt-4 text-sm">
             <span className="text-white">
-              Don't have an account? <Link to="/Health-Mentá/register" className="underline">Sign up</Link>
+              Don't have an account? <Link to="/Health-Menta/register" className="underline">Sign up</Link>
             </span>
           </div>
           <div className="mt-2 text-sm">

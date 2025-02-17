@@ -327,10 +327,11 @@ app.post("/api/upload-reports", authenticateToken, upload.array("reports", 5), a
       return res.status(400).json({ message: "No files uploaded" });
     }
 
-    // Save filenames in an array
+    // Generate an array of filenames
     const fileNames = req.files.map((file) => file.filename);
     patient.reports = [...(patient.reports || []), ...fileNames];
     await patient.save();
+
 
     res.status(201).json({ message: "Reports uploaded successfully", filenames: fileNames });
   } catch (error) {
@@ -338,6 +339,7 @@ app.post("/api/upload-reports", authenticateToken, upload.array("reports", 5), a
     res.status(500).json({ message: "Error uploading reports" });
   }
 });
+
 
 app.get("/api/get-reports", authenticateToken, async (req, res) => {
   try {

@@ -41,9 +41,8 @@ const PatientSchema = new mongoose.Schema({
     time: String
   }],
   
-  photo: {
-    type: String
-},
+  photo: {type: String},  
+    reports: { type: [String], default: [] }
 }, { timestamps: true });
 
 
