@@ -28,11 +28,23 @@ const PrescriptionManager: React.FC = () => {
     formData.append('prescription', image);
 
     try {
-      const response = await axios.post('URL', formData, {
+      // Validate file type
+      const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+      if (!validTypes.includes(image.type)) {
+        setError('Please upload a valid image file (jpg, jpeg, png).');
+        setLoading(false);
+        return;
+      }
+
+      // Send the image to the POST endpoint
+      await axios.post('http://127.0.0.1:5000/extract_medicine_name', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
+
+      // Fetch the data from the GET endpoint
+      const response = await axios.get('http://127.0.0.1:5000/get_info');
       setMedicineData(response.data);
     } catch (err) {
       setError('Error uploading image or fetching data.');
